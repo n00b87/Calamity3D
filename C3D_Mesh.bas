@@ -208,7 +208,7 @@ End Sub
 
 
 C3D_MAX_SCENE_FACES = 400
-Dim C3D_Visible_Faces[C3D_MAX_SCENE_FACES]
+Dim C3D_Visible_Faces[C3D_MAX_SCENE_FACES, 2] '0 is actor, 1 is face
 C3D_Visible_Faces_Count = 0
 
 
@@ -279,6 +279,42 @@ Function PointCheck(actor, vert_num, face_num, ByRef point_z, ByRef face_closest
 	Return (cmp_x And cmp_y)
 	
 End Function
+
+Dim C3D_Actor_Face_ZOrder[C3D_MAX_ACTORS, C3D_MAX_FACES]
+
+Function SetFaceZ(actor, face_num)
+	
+	Dim vy[4]
+	Dim vz[4]
+	face_min_z = C3D_Actor_Vertex[ actor, C3D_Actor_Face_Vertex[actor, face_num, 0], 2]
+	vcount = C3D_Actor_Face_Vertex_Count[actor, face_num]
+	
+	For i = 0 to vcount-1
+		vy[i] = C3D_Actor_Vertex[ actor, C3D_Actor_Face_Vertex[actor, face_num, i], 1]
+		vz[i] = C3D_Actor_Vertex[ actor, C3D_Actor_Face_Vertex[actor, face_num, i], 2]
+		face_min_z = Min(face_min_z, vz[i])
+	Next
+	
+	C3D_Actor_Face_ZOrder[actor, face_num] = 0
+	
+	For i = 0 to C3D_Visible_Faces_Count-1
+		cmp_actor = C3D_Visible_Faces[i, 0]
+		cmp_face = C3D_Visible_Faces[i, 1]
+		cmp_min_z = C3D_Actor_Vertex[cmp_actor, C3D_Actor_Face_Vertex[cmp_actor, cmp_face, 0], 2]
+		For cmp_vert_num = 0 to C3D_Actor_Face_Vertex_Count[cmp_actor, cmp_face]-1
+			cmp_vertex = C3D_Actor_Face_Vertex[cmp_actor, cmp_face, cmp_vert_num]
+			cmp_min_z = Min(cmp_min_z, C3D_Actor_Vertex[cmp_actor, cmp_vertex, 2])
+		Next
+		
+		If face_min_z > cmp_min_z Then
+			C3D_Actor_Face_ZOrder[actor, face_num] = C3D_Actor_Face_ZOrder[actor, face_num] + 1
+		End If
+	Next
+	
+	Return 0
+	
+End Function
+
 
 Sub C3D_ComputeVisibleFaces(actor)
 	C3D_Visible_Init = False
