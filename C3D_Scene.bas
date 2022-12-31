@@ -1,9 +1,4 @@
 Include Once
-Include "C3D_Mesh.bas"
-Include "C3D_Image.bas"
-Include "C3D_Sprite.bas"
-Include "C3D_Camera.bas"
-Include "Utility.bas"
 
 C3D_GRAPH_LEFT = -20
 C3D_GRAPH_RIGHT = 20
@@ -23,6 +18,14 @@ C3D_SCREEN_HEIGHT = 480
 
 C3D_SCREEN_GRAPH_OFFSET_X = C3D_SCREEN_WIDTH / 2
 C3D_SCREEN_GRAPH_OFFSET_Y = C3D_SCREEN_HEIGHT
+
+Include "C3D_Mesh.bas"
+Include "C3D_Image.bas"
+Include "C3D_Sprite.bas"
+Include "C3D_Camera.bas"
+Include "Utility.bas"
+
+
 
 Sub C3D_DrawMeshFace(actor, face)
 	Dim vertex[ C3D_MAX_VERTICES, 8]
@@ -140,7 +143,5 @@ Sub C3D_RenderScene()
 			Next
 		End If
 	Next
-	
-	Update()
 	
 End Sub

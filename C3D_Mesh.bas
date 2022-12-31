@@ -1,11 +1,12 @@
 Include Once
+Include "C3D_Image.bas"
 Include "C3D_Camera.bas"
 Include "strings.bas"
 Include "Utility.bas"
 
-C3D_MAX_MESH = 5
-C3D_MAX_VERTICES = 99
-C3D_MAX_FACES = 99
+C3D_MAX_MESH = 100
+C3D_MAX_VERTICES = 5000
+C3D_MAX_FACES = 5000
 
 Dim C3D_Mesh_Active[C3D_MAX_MESH]
 
@@ -175,10 +176,14 @@ Function C3D_LoadMesh(obj_file$)
 	Return mesh_num
 End Function
 
+Sub C3D_SetMeshTexture(mesh, img)
+	C3D_Mesh_Texture[mesh] = C3D_Image[img]
+End Sub
 
 
 
-C3D_MAX_ACTORS = 5
+
+C3D_MAX_ACTORS = 100
 
 Dim C3D_Actor_Active[C3D_MAX_ACTORS]
 
@@ -198,8 +203,7 @@ Dim C3D_Actor_Source[C3D_MAX_ACTORS] 'Image or Mesh
 
 
 
-C3D_MAX_SCENE_FACES = 400
-C3D_MAX_Z_DEPTH = 500
+C3D_MAX_SCENE_FACES = 5000
 Dim C3D_Visible_Faces[C3D_MAX_SCENE_FACES, 2] '0 is actor, 1 is face
 Dim C3D_ZSort_Faces[C3D_MAX_Z_DEPTH, C3D_MAX_SCENE_FACES] 'reference item in C3D_Visible_Faces, 500 is max Z depth (I will probably change it later)
 Dim C3D_ZSort_Faces_Count[C3D_MAX_Z_DEPTH]
@@ -246,6 +250,10 @@ Function C3D_CreateActor(actor_type, actor_source)
 	Return -1
 End Function
 
+Function C3D_GetActorMesh(actor)
+	Return C3D_Actor_Source[actor]
+End Function
+
 Sub C3D_ClearActor(actor)
 	C3D_Actor_Active[actor] = False
 End Sub
@@ -273,7 +281,7 @@ Sub C3D_RotateActor(actor, x, y, z)
 	C3D_Actor_Rotation[actor, 1] = (C3D_Actor_Rotation[actor, 1] + y) MOD 360
 	C3D_Actor_Rotation[actor, 2] = (C3D_Actor_Rotation[actor, 2] + z) MOD 360
 	
-	Print "Rotation = ";C3D_Actor_Rotation[actor, 0];", ";C3D_Actor_Rotation[actor, 1];", ";C3D_Actor_Rotation[actor, 2]
+	'Print "Rotation = ";C3D_Actor_Rotation[actor, 0];", ";C3D_Actor_Rotation[actor, 1];", ";C3D_Actor_Rotation[actor, 2]
 End Sub
 
 Sub C3D_SetActorScale(actor, x, y, z)
@@ -346,6 +354,9 @@ Function SetFaceZ(actor, face_num)
 	
 	Dim vy[4]
 	Dim vz[4]
+	Dim outlier_index[4]
+	oi_count = 0
+	
 	mesh = C3D_Actor_Source[actor]
 	
 	'Set this as a default if its a sprite, Might need to change this when I actually implement sprites
@@ -355,11 +366,15 @@ Function SetFaceZ(actor, face_num)
 	If C3D_Actor_Type[actor] = C3D_ACTOR_TYPE_MESH Then
 		face_min_z = C3D_Actor_Vertex[ actor, C3D_Mesh_Face_Vertex[mesh, face_num, 0], 2]
 	End If
+	
+	face_max_z = face_min_z
+	
 	vcount = C3D_Mesh_Face_Vertex_Count[mesh, face_num]
 	
 	For i = 0 to vcount-1
 		'vy[i] = C3D_Actor_Vertex[ actor, C3D_Mesh_Face_Vertex[mesh, face_num, i], 1]
 		vz[i] = C3D_Actor_Vertex[ actor, C3D_Mesh_Face_Vertex[mesh, face_num, i], 2]
+		
 		'If vz[i] >= 0 Then
 		'	If face_min_z < 0 Then
 		'		face_min_z = vz[i]
@@ -368,15 +383,23 @@ Function SetFaceZ(actor, face_num)
 		'	End If
 		'End If
 		face_max_z = Max(face_max_z, vz[i])
+		If face_max_z >= C3D_CAMERA_LENS Then
+			outlier_index[oi_count] = i
+			oi_count = oi_count + 1
+		End If
 	Next
 	
 	'Print "Min/Max = ";face_min_z;", ";face_max_z
 	
-	face_min_z = (face_min_z+face_max_z)/2 'This is some bullshit math to order the faces with out checking if they are obscured
+	face_min_z = (face_min_z+face_max_z) /2 'This is some bullshit math to order the faces with out checking if they are obscured
 	
 	C3D_Actor_Face_ZOrder[actor, face_num] = face_min_z
 	
-	Return (C3D_CAMERA_LENS - face_min_z)
+	If face_max_z >= C3D_CAMERA_LENS Then
+		Return -1
+	Else
+		Return (C3D_CAMERA_LENS - face_min_z)
+	End If
 	
 	'For i = 0 to C3D_Visible_Faces_Count-1
 	'	cmp_actor = C3D_Visible_Faces[i, 0]
@@ -395,6 +418,50 @@ Function SetFaceZ(actor, face_num)
 	'Return 0
 	
 End Function
+
+Sub Debug_Info(actor, face_num)
+Dim vy[4]
+	Dim vz[4]
+	Dim outlier_index[4]
+	oi_count = 0
+	
+	mesh = C3D_Actor_Source[actor]
+	
+	'Set this as a default if its a sprite, Might need to change this when I actually implement sprites
+	face_min_z = C3D_Actor_Vertex[actor, 0, 2]
+	face_max_z = face_min_z
+	
+	Print "Start Z1 = ";face_min_z
+	If C3D_Actor_Type[actor] = C3D_ACTOR_TYPE_MESH Then
+		face_min_z = C3D_Actor_Vertex[ actor, C3D_Mesh_Face_Vertex[mesh, face_num, 0], 2]
+	End If
+	Print "Start Z2 = ";face_min_z
+	vcount = C3D_Mesh_Face_Vertex_Count[mesh, face_num]
+	
+	For i = 0 to vcount-1
+		'vy[i] = C3D_Actor_Vertex[ actor, C3D_Mesh_Face_Vertex[mesh, face_num, i], 1]
+		vz[i] = C3D_Actor_Vertex[ actor, C3D_Mesh_Face_Vertex[mesh, face_num, i], 2]
+		
+		If key(k_m) Then
+			Print "VertexZ[";i;"] = ";vz[i]
+		End If
+		
+		'If vz[i] >= 0 Then
+		'	If face_min_z < 0 Then
+		'		face_min_z = vz[i]
+		'	Else
+		face_min_z = Min(face_min_z, vz[i])
+		'	End If
+		'End If
+		face_max_z = Max(face_max_z, vz[i])
+		If face_max_z >= C3D_CAMERA_LENS Then
+			outlier_index[oi_count] = i
+			oi_count = oi_count + 1
+		End If
+	Next
+	
+	Print "Final Z = ";face_min_z;" -> ";face_max_z
+End Sub
 
 
 Sub C3D_ComputeVisibleFaces()
@@ -428,6 +495,17 @@ Sub C3D_ComputeVisibleFaces()
 				'Print "ZSort_Faces_Count[";face_min_z;"] = ";C3D_ZSort_Faces_Count[face_min_z]
 				C3D_ZSort_Faces[face_min_z, C3D_ZSort_Faces_Count[face_min_z]] = C3D_Visible_Faces_Count
 				C3D_ZSort_Faces_Count[face_min_z] = C3D_ZSort_Faces_Count[face_min_z] + 1
+				
+'				'Debug Info
+'				If key(k_m) Then
+'					Print "--------------------------------"
+'					Print "Camera = ";C3D_Camera_Position[0];", ";C3D_Camera_Position[1];", ";C3D_Camera_Position[2]
+'					Print "Actor = ";C3D_Actor_Position[actor, 0];", ";C3D_Actor_Position[actor, 1];", ";C3D_Actor_Position[actor, 2]
+'					Print "Min_z = "; face_min_z
+'					Print ""
+'					Debug_Info(actor, face)
+'					Print "--------------------------------"
+'				End If
 			End If
 			C3D_Visible_Faces_Count = C3D_Visible_Faces_Count + 1
 		Next
@@ -451,13 +529,13 @@ Sub C3D_ComputeTransforms()
 		pos_z = C3D_Actor_Position[actor, 2] - C3D_Camera_Position[2]
 		
 		'Rotation (Note: All rotations in the engine will be in degrees and I am converting it to radians here)
-		rot_x = C3D_Actor_Rotation[actor, 0] + C3D_Camera_Rotation[0]
-		rot_y = C3D_Actor_Rotation[actor, 1] + C3D_Camera_Rotation[1]
-		rot_z = C3D_Actor_Rotation[actor, 2] + C3D_Camera_Rotation[2]
+		rot_x = C3D_Actor_Rotation[actor, 0]
+		rot_y = C3D_Actor_Rotation[actor, 1]
+		rot_z = C3D_Actor_Rotation[actor, 2]
 		
-		center_x = C3D_Mesh_Origin[mesh, 0]
-		center_y = C3D_Mesh_Origin[mesh, 1]
-		center_z = C3D_Mesh_Origin[mesh, 2]
+		center_x = C3D_Mesh_Origin[mesh, 0] '+ pos_x
+		center_y = C3D_Mesh_Origin[mesh, 1] '+ pos_y
+		center_z = C3D_Mesh_Origin[mesh, 2] '+ pos_z
 		
 		'Scale (Note: Camera does not have a scale. The scene can be scales by changing the left, right, top, and bottom values)
 		scale_x = C3D_Actor_Scale[actor, 0]
@@ -467,9 +545,9 @@ Sub C3D_ComputeTransforms()
 		'Don't need to worry about faces here since these transforms have to be applied to every vertex
 		For vertex = 0 to C3D_Mesh_Vertex_Count[mesh]-1
 				'vertex
-				vx = C3D_Mesh_Vertex[mesh, vertex, 0]
-				vy = C3D_Mesh_Vertex[mesh, vertex, 1]
-				vz = C3D_Mesh_Vertex[mesh, vertex, 2]
+				vx = C3D_Mesh_Vertex[mesh, vertex, 0] '+ pos_x
+				vy = C3D_Mesh_Vertex[mesh, vertex, 1] '+ pos_y
+				vz = C3D_Mesh_Vertex[mesh, vertex, 2] '+ pos_z
 				
 				'Actor Transforms
 				'Rotate On X
@@ -481,22 +559,75 @@ Sub C3D_ComputeTransforms()
 				'Rotate On Z
 				C3D_RotatePoint(vx, vy, center_x, center_y, rot_z, vx, vy)
 				
+				vx = vx + pos_x
+				vy = vy + pos_y
+				vz = vz + pos_z
 				
 				'Orientation to Camera
+				'Rotate On Y
+				C3D_RotatePoint(vx, vz, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Z, C3D_Camera_Rotation[1], vx, vz)
+				
 				'Rotate On X
 				C3D_RotatePoint(vy, vz, C3D_CAMERA_CENTER_Y, C3D_CAMERA_CENTER_Z, C3D_Camera_Rotation[0], vy, vz)
 				
 				'Rotate On Y
-				C3D_RotatePoint(vx, vz, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Z, C3D_Camera_Rotation[1], vx, vz)
+				'C3D_RotatePoint(vx, vz, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Z, C3D_Camera_Rotation[1], vx, vz)
 				
 				'Rotate On Z
 				C3D_RotatePoint(vx, vy, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Y, C3D_Camera_Rotation[2], vx, vy)
 				
 				'Scaling is not implemented yet
 				
-				C3D_Actor_Vertex[actor, vertex, 0] = vx + pos_x
-				C3D_Actor_Vertex[actor, vertex, 1] = vy + pos_y
-				C3D_Actor_Vertex[actor, vertex, 2] = vz + pos_z
+				C3D_Actor_Vertex[actor, vertex, 0] = vx '- C3D_Camera_Position[0] '+ pos_x
+				C3D_Actor_Vertex[actor, vertex, 1] = vy '- C3D_Camera_Position[1] '+ pos_y
+				C3D_Actor_Vertex[actor, vertex, 2] = vz '- C3D_Camera_Position[2] '+ pos_z
+		Next
+	Next
+End Sub
+
+
+
+Sub C3D_DrawMiniMap()
+	bx = 500
+	by = 10
+	bw = 100
+	bh = 100
+	SetColor(RGB(255,255,255))
+	Rect(bx, by, bw, bh)
+	
+	cam_x = bx + (bw/2) - 5
+	cam_y = by + bh - 10
+	SetColor(RGB(255,0,0))
+	Rect(cam_x, cam_y, 10, 10)
+	Line(cam_x+5, by, cam_x+5, cam_y)
+	
+	scale_factor = bw/C3D_SCREEN_WIDTH
+	
+	cam_lens = by + C3D_CAMERA_LENS*scale_factor + bh
+	Rect(cam_x, cam_lens-5, 10, 10)
+	
+	'print "SF = ";scale_factor
+	
+	SetColor(RGB(0,255,0))
+	
+	For actor = 0 to C3D_MAX_ACTORS-1
+		
+		If Not C3D_Actor_Active[actor] Then
+			Continue
+		End If
+		'Print "Found Actor"
+		mesh = C3D_Actor_Source[actor]
+		
+		
+		'Don't need to worry about faces here since these transforms have to be applied to every vertex
+		For vertex = 0 to C3D_Mesh_Vertex_Count[mesh]-1
+		
+				vx = C3D_Actor_Vertex[actor, vertex, 0] * scale_factor + (cam_x+5) 
+				vy = C3D_Actor_Vertex[actor, vertex, 1]
+				vz = C3D_Actor_Vertex[actor, vertex, 2] * scale_factor + bh
+				
+				RectFill(vx-1, vz-1, 3, 3)
+				
 		Next
 	Next
 End Sub
