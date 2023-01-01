@@ -1,5 +1,5 @@
 Include Once
-Include "Utility.bas"
+Include "Calamity3D/C3D_Utility.bas"
 
 C3D_CAMERA_LENS = 270 'Distance from 0, facing down negative z-axis
 

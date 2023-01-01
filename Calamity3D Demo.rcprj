@@ -1,0 +1,7 @@
+RCBASIC_STUDIO:1.0
+PROJECT_NAME:Calamity3D Demo
+PROJECT_MAIN:demo.bas
+AUTHOR:n00b <aka Rodney Cunningham>
+WEBSITE:rcbasic.freeforums.net
+DESCRIPTION:A simple demo showing off the basic features of the Calamity3D engine
+SOURCE_REL:demo.bas

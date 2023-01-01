@@ -19,11 +19,11 @@ C3D_SCREEN_HEIGHT = 480
 C3D_SCREEN_GRAPH_OFFSET_X = C3D_SCREEN_WIDTH / 2
 C3D_SCREEN_GRAPH_OFFSET_Y = C3D_SCREEN_HEIGHT
 
-Include "C3D_Mesh.bas"
-Include "C3D_Image.bas"
-Include "C3D_Sprite.bas"
-Include "C3D_Camera.bas"
-Include "Utility.bas"
+Include "Calamity3D/C3D_Mesh.bas"
+Include "Calamity3D/C3D_Image.bas"
+Include "Calamity3D/C3D_Sprite.bas"
+Include "Calamity3D/C3D_Camera.bas"
+Include "Calamity3D/C3D_Utility.bas"
 
 
 
@@ -33,8 +33,6 @@ Sub C3D_DrawMeshFace(actor, face)
 	index_count = 0
 	mesh = C3D_Actor_Source[actor]
 	vertex_count = C3D_Mesh_Face_Vertex_Count[mesh, face]
-	
-	'Print "Vertex Count = "; vertex_count
 	
 	'Convert 3D coordinates into 2D screen location
 	For i = 0 to vertex_count-1
@@ -50,18 +48,6 @@ Sub C3D_DrawMeshFace(actor, face)
 		vertex[ i, 5 ] = 255
 		vertex[ i, 6 ] = C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 0] 'u
 		vertex[ i, 7 ] = C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 1] 'v
-		
-		'SetColor(RGB(255,255,255))
-		'RectFill(vertex[i, 0], vertex[i, 1], 2, 2)
-		
-		'DEBUG
-		'Print "Original: "; C3D_Actor_Vertex[actor, vert_num, 0 ];", ";C3D_Actor_Vertex[actor, vert_num, 1 ];", ";z;", v=";vert_num;", t=";C3D_Mesh_Face_TCoord[mesh, face, i]
-		'for a = 0 to 7
-		'	Print vertex[i, a]; ", ";
-		'Next
-		'Print ""
-		'Print ""
-		'END DEBUG
 		
 		If i >= 2 Then
 			index[index_count] = 0
@@ -89,10 +75,6 @@ Sub C3D_DrawMeshFace(actor, face)
 	'END DEBUG
 	
 	DrawGeometry(C3D_Mesh_Texture[mesh], vertex_count, vertex, index_count, index)
-	'Update()
-	'Wait(50)
-	'Waitkey
-	'Print "NEXT"
 	
 End Sub
 
@@ -119,23 +101,17 @@ Sub C3D_RenderScene()
 	C3D_ComputeTransforms()
 	C3D_ComputeVisibleFaces()
 	
-	'Print "Come one"
-	
 	For z = (C3D_MAX_Z_DEPTH-1) to 1 step -1
-		'Print "z = "; z
 		If C3D_ZSort_Faces_Count[z] > 0 Then
-			'Print "ZSRT FC = "; C3D_ZSort_Faces_Count[z]
 			For i = 0 to C3D_ZSort_Faces_Count[z]-1
 				visible_face_index = C3D_ZSort_Faces[z, i]
 				actor = C3D_Visible_Faces[visible_face_index, 0]
 				face = C3D_Visible_Faces[visible_face_index, 1]
 				face_type = C3D_Visible_Faces_Type[visible_face_index]
 				
-				'Print face_type; " == "; C3D_ACTOR_TYPE_MESH
-				
 				Select Case face_type
 				Case C3D_ACTOR_TYPE_MESH
-					'Print "Draw Face"
+					'Draw Face
 					C3D_DrawMeshFace(actor, face)
 				Case C3D_ACTOR_TYPE_SPRITE_2D
 					'Do nothing for now

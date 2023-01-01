@@ -1,8 +1,8 @@
 Include Once
-Include "C3D_Image.bas"
-Include "C3D_Camera.bas"
-Include "strings.bas"
-Include "Utility.bas"
+Include "Calamity3D/C3D_Image.bas"
+Include "Calamity3D/C3D_Camera.bas"
+Include "Calamity3D/strings.bas"
+Include "Calamity3D/C3D_Utility.bas"
 
 C3D_MAX_MESH = 100
 C3D_MAX_VERTICES = 5000
@@ -206,8 +206,9 @@ Dim C3D_Actor_Source[C3D_MAX_ACTORS] 'Image or Mesh
 C3D_MAX_SCENE_FACES = 5000
 Dim C3D_Visible_Faces[C3D_MAX_SCENE_FACES, 2] '0 is actor, 1 is face
 Dim C3D_ZSort_Faces[C3D_MAX_Z_DEPTH, C3D_MAX_SCENE_FACES] 'reference item in C3D_Visible_Faces, 500 is max Z depth (I will probably change it later)
+Dim C3D_ZSort_Faces_Distance[C3D_MAX_Z_DEPTH, C3D_MAX_SCENE_FACES]
 Dim C3D_ZSort_Faces_Count[C3D_MAX_Z_DEPTH]
-
+Dim C3D_Actor_Face_ZOrder[C3D_MAX_ACTORS, C3D_MAX_FACES]
 
 Dim C3D_Visible_Faces_Type[C3D_MAX_SCENE_FACES]
 C3D_Visible_Faces_Count = 0
@@ -296,61 +297,7 @@ Sub C3D_ScaleActor(actor, x, y, z)
 	C3D_Actor_Scale[actor, 2] = C3D_Actor_Scale[actor, 2] * z
 End Sub
 
-
-
-'Function PointCheck(actor, vert_num, face_num, ByRef point_z, ByRef face_closest_z)
-'	vx = C3D_Actor_Vertex[ actor, C3D_Actor_Face_Vertex[actor, face_num, vert_num], 0]
-'	vy = C3D_Actor_Vertex[ actor, C3D_Actor_Face_Vertex[actor, face_num, vert_num], 1]
-'	vz = C3D_Actor_Vertex[ actor, C3D_Actor_Face_Vertex[actor, face_num, vert_num], 2]
-'	
-'	Dim f_vx[4]
-'	Dim f_vy[4]
-'	Dim f_vz[4]
-'	
-'	f_v_count = C3D_Actor_Face_Vertex_Count[actor, face_num]
-'	
-'	min_x = C3D_Actor_Vertex[ actor, C3D_Actor_Face_Vertex[actor, face_num, 0], 0]
-'	min_y = C3D_Actor_Vertex[ actor, C3D_Actor_Face_Vertex[actor, face_num, 0], 1]
-'	max_x = min_x
-'	max_y = min_y
-'	face_closest_z = C3D_Actor_Vertex[ actor, C3D_Actor_Face_Vertex[actor, face_num, 0], 2]
-'	
-'	For i = 0 to C3D_Actor_Face_Vertex_Count[actor, face_num] - 1
-'		f_vx[i] = C3D_Actor_Vertex[ actor, C3D_Actor_Face_Vertex[actor, face_num, i], 0]
-'		f_vy[i] = C3D_Actor_Vertex[ actor, C3D_Actor_Face_Vertex[actor, face_num, i], 1]
-'		f_vz[i] = C3D_Actor_Vertex[ actor, C3D_Actor_Face_Vertex[actor, face_num, i], 2]
-'		min_x = Min(min_x, f_vx[i])
-'		min_y = Min(min_y, f_vy[i])
-'		max_x = Max(max_x, f_vx[i])
-'		max_y = Max(max_y, f_vy[i])
-'		face_closest_z = Min(face_closest_z, f_vz[i])
-'	Next
-'	
-'	If Not C3D_Visible_Init Then
-'		C3D_Visible_Min_X = min_x
-'		C3D_Visible_Min_Y = min_y
-'		C3D_Visible_Max_X = max_x
-'		C3D_Visible_Max_Y = max_y
-'		C3D_Visible_Init = True
-'	Else
-'		C3D_Visible_Min_X = Min(C3D_Visible_Min_X, min_x)
-'		C3D_Visible_Min_Y = Min(C3D_Visible_Min_Y, min_y)
-'		C3D_Visible_Max_X = Max(C3D_Visible_Max_X, max_x)
-'		C3D_Visible_Max_Y = Max(C3D_Visible_Max_Y, max_y)
-'	End If
-'	
-'	point_z = vz
-'	
-'	cmp_x = (vx >= min_x) And (vx <= max_x)
-'	cmp_y = (vy >= min_y) And (vy <= max_y)
-'	
-'	Return (cmp_x And cmp_y)
-'	
-'End Function
-
-Dim C3D_Actor_Face_ZOrder[C3D_MAX_ACTORS, C3D_MAX_FACES]
-
-Function SetFaceZ(actor, face_num)
+Function SetFaceZ(actor, face_num, ByRef min_zx)
 	
 	Dim vy[4]
 	Dim vz[4]
@@ -361,10 +308,12 @@ Function SetFaceZ(actor, face_num)
 	
 	'Set this as a default if its a sprite, Might need to change this when I actually implement sprites
 	face_min_z = C3D_Actor_Vertex[actor, 0, 2]
+	min_zx = C3D_Actor_Vertex[actor, 0, 0]
 	face_max_z = face_min_z
 	
 	If C3D_Actor_Type[actor] = C3D_ACTOR_TYPE_MESH Then
 		face_min_z = C3D_Actor_Vertex[ actor, C3D_Mesh_Face_Vertex[mesh, face_num, 0], 2]
+		min_zx = C3D_Actor_Vertex[ actor, C3D_Mesh_Face_Vertex[mesh, face_num, 0], 0]
 	End If
 	
 	face_max_z = face_min_z
@@ -380,6 +329,7 @@ Function SetFaceZ(actor, face_num)
 		'		face_min_z = vz[i]
 		'	Else
 		face_min_z = Min(face_min_z, vz[i])
+		C3D_Ternary(face_min_z=vz[i], min_zx, C3D_Actor_Vertex[ actor, C3D_Mesh_Face_Vertex[mesh, face_num, i], 0], min_zx)
 		'	End If
 		'End If
 		face_max_z = Max(face_max_z, vz[i])
@@ -466,6 +416,7 @@ End Sub
 
 Sub C3D_ComputeVisibleFaces()
 	C3D_Visible_Init = False
+	min_zx = 0
 	
 	'Print "Visible_Face_Count = "; C3D_Visible_Faces_Count
 	C3D_Visible_Faces_Count = 0
@@ -488,12 +439,42 @@ Sub C3D_ComputeVisibleFaces()
 			C3D_Visible_Faces[C3D_Visible_Faces_Count, 0] = actor
 			C3D_Visible_Faces[C3D_Visible_Faces_Count, 1] = face
 			C3D_Visible_Faces_Type[C3D_Visible_Faces_Count] = C3D_Actor_Type[actor]
-			face_min_z = SetFaceZ(actor, face)
+			face_min_z = SetFaceZ(actor, face, min_zx)
 			'Print "face_min_z[ a=";actor;", f=";face;" ] = ";face_min_z
 			If face_min_z >= 0 And face_min_z < C3D_MAX_Z_DEPTH Then
 				'Print "VISIBLE FACE DBG: z = ";face_min_z;"  face = "; C3D_Visible_Faces_Count
 				'Print "ZSort_Faces_Count[";face_min_z;"] = ";C3D_ZSort_Faces_Count[face_min_z]
 				C3D_ZSort_Faces[face_min_z, C3D_ZSort_Faces_Count[face_min_z]] = C3D_Visible_Faces_Count
+				
+'				tmp_face2 = C3D_Visible_Faces_Count
+'				tmp_face_distance2 = C3D_Distance2D(0, C3D_CAMERA_LENS, min_zx, face_min_z)
+'				
+'				tmp_face1 = 0
+'				tmp_face_distance1 = 0
+'				
+'				z = face_min_z
+'				zsort_insert_index = 0
+'				For i1 = 0 to C3D_ZSort_Faces_Count[z]-1
+'					If face_min_z > C3D_ZSort_Faces_Distance[z, i1] Then
+'						zsort_insert_index = i1
+'						Exit For
+'					End If
+'				Next
+'				
+'				For i2 = zsort_insert_index To C3D_ZSort_Faces_Count[z]
+'					tmp_face1 = C3D_ZSort_Faces[z, i2]
+'					tmp_face_distance1 = C3D_ZSort_Faces_Distance[z, i2]
+'					
+'					C3D_ZSort_Faces[z, i2] = tmp_face2
+'					C3D_ZSort_Faces_Distance[z, i2] = tmp_face_distance2
+'					
+'					tmp_face2 = tmp_face1
+'					tmp_face_distance2 = tmp_face_distance1
+'					
+'				Next
+				
+				'C3D_ZSort_Faces_Distance[face_min_z, C3D_ZSort_Faces_Count[face_min_z]] = face_min_z 'C3D_Distance2D(0, 0, min_zx, face_min_z)
+				
 				C3D_ZSort_Faces_Count[face_min_z] = C3D_ZSort_Faces_Count[face_min_z] + 1
 				
 '				'Debug Info

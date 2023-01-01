@@ -1,5 +1,5 @@
 Include Once
-Include "Utility.bas"
+Include "Calamity3D/C3D_Utility.bas"
 
 C3D_MAX_IMAGES = 5
 
