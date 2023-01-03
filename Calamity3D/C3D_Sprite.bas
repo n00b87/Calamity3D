@@ -22,6 +22,7 @@ Function C3D_CreateSprite(img_id, frame_w, frame_h)
 		If Not C3D_Sprite_Active[i] Then
 			sprite = i
 			C3D_Sprite_Active[i] = True
+			C3D_Sprite_Image[i] = img_id
 			C3D_Sprite_Frame_Size[i, 0] = frame_w
 			C3D_Sprite_Frame_Size[i, 1] = frame_h
 			C3D_Sprite_Animation_Count[i] = 0

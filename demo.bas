@@ -21,7 +21,6 @@ C3D_SetMeshTexture(test_level_mesh, test_level_map)
 C3D_MoveActor(squid, 120, 100, -120)
 
 
-
 cam_speed = 4
 
 C3D_MoveCamera(0, 180, 0)
@@ -63,6 +62,8 @@ While Not Key(K_ESCAPE)
 	
 	SetColor(RGB(255,255,255))
 	DrawText("FPS: " + Str$(FPS()), 10, 10)
+	DrawText("Faces: " + Str$(C3D_Rendered_Faces_Count), 10, 30)
+	
 	
 	Update()
 	

@@ -3,7 +3,7 @@ Include "Calamity3D/C3D_Utility.bas"
 
 C3D_CAMERA_LENS = 270 'Distance from 0, facing down negative z-axis
 
-C3D_MAX_Z_DEPTH = 700
+C3D_MAX_Z_DEPTH = 1000
 
 C3D_CAMERA_CENTER_X = 0
 C3D_CAMERA_CENTER_Y = 0

@@ -96,10 +96,14 @@ Function C3D_GetRenderType()
 	Return C3D_Render_Type
 End Function
 
+C3D_Rendered_Faces_Count = 0
+
 Sub C3D_RenderScene()
 	
 	C3D_ComputeTransforms()
 	C3D_ComputeVisibleFaces()
+	
+	C3D_Rendered_Faces_Count = 0
 	
 	For z = (C3D_MAX_Z_DEPTH-1) to 1 step -1
 		If C3D_ZSort_Faces_Count[z] > 0 Then
@@ -113,6 +117,7 @@ Sub C3D_RenderScene()
 				Case C3D_ACTOR_TYPE_MESH
 					'Draw Face
 					C3D_DrawMeshFace(actor, face)
+					C3D_Rendered_Faces_Count = C3D_Rendered_Faces_Count + 1
 				Case C3D_ACTOR_TYPE_SPRITE_2D
 					'Do nothing for now
 				End Select
