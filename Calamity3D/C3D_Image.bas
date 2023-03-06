@@ -7,7 +7,6 @@ Dim C3D_Image[C3D_MAX_IMAGES]
 Dim C3D_Image_Size[C3D_MAX_IMAGES, 2]
 Dim C3D_Image_Loaded[C3D_MAX_IMAGES]
 
-
 Function C3D_LoadImage(img_file$)
 	If Not FileExists(img_file$) Then
 		Return -1

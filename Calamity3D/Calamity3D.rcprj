@@ -12,3 +12,5 @@ SOURCE_REL:C3D_Scene.bas
 SOURCE_REL:C3D_Sprite.bas
 SOURCE_REL:C3D_Utility.bas
 SOURCE_REL:strings.bas
+SOURCE_REL:C3D_Matrix.bas
+SOURCE_REL:C3D_Window.bas

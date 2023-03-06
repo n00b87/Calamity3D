@@ -46,3 +46,10 @@ Sub C3D_MovePointFromOrigin(angle, origin_x, origin_y, ByRef x, ByRef y)
 	x = v_cos
 	y = v_sin
 End Sub
+
+'x = 1
+'y = 2
+'z = 3
+'C3D_RotatePoint(z, y, 0, 0, -44, z, y)
+
+'print "Rotation = "; y; ", ";z
