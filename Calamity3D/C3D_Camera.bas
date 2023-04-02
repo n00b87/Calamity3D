@@ -15,10 +15,10 @@ Dim C3D_Camera_AbsoluteRotation_Delta[3]
 C3D_Camera_Position[1] = -50
 C3D_Camera_Position[2] = -10
 
-C3D_Camera_Matrix_T = C3D_CreateMatrix(4,4)
-C3D_Camera_Matrix_RX = C3D_CreateMatrix(4,4)
-C3D_Camera_Matrix_RY = C3D_CreateMatrix(4,4)
-C3D_Camera_Matrix_RZ = C3D_CreateMatrix(4,4)
+Dim C3D_Camera_Matrix_T '= C3D_CreateMatrix(4,4)
+Dim C3D_Camera_Matrix_RX '= C3D_CreateMatrix(4,4)
+Dim C3D_Camera_Matrix_RY '= C3D_CreateMatrix(4,4)
+Dim C3D_Camera_Matrix_RZ '= C3D_CreateMatrix(4,4)
 
 Sub C3D_SetCameraPosition(x, y, z)
 	C3D_Camera_Position[0] = x
@@ -53,15 +53,96 @@ Sub C3D_MoveCamera(x, y, z)
 End Sub
 
 Sub C3D_SetCameraRotation(x, y, z)
-	C3D_Camera_Rotation[0] = x
-	C3D_Camera_Rotation[1] = y
-	C3D_Camera_Rotation[2] = z
+	C3D_Camera_Rotation[0] = (x MOD 360)
+	C3D_Camera_Rotation[1] = (y MOD 360)
+	C3D_Camera_Rotation[2] = (z MOD 360)
 End Sub
 
 Sub C3D_RotateCamera(x, y, z)
-	C3D_Camera_Rotation[0] = C3D_Camera_Rotation[0] + x
-	C3D_Camera_Rotation[1] = C3D_Camera_Rotation[1] + y
-	C3D_Camera_Rotation[2] = C3D_Camera_Rotation[2] + z
+	C3D_Camera_Rotation[0] = (C3D_Camera_Rotation[0] + x) MOD 360
+	C3D_Camera_Rotation[1] = (C3D_Camera_Rotation[1] + y) MOD 360
+	C3D_Camera_Rotation[2] = (C3D_Camera_Rotation[2] + z) MOD 360
+End Sub
+
+
+cam_state_pos_x = C3D_Camera_Position[0]
+cam_state_pos_y = C3D_Camera_Position[1]
+cam_state_pos_z = C3D_Camera_Position[2]
+
+cam_state_rot_x = C3D_Camera_Rotation[0]
+cam_state_rot_y = C3D_Camera_Rotation[1]
+cam_state_rot_z = C3D_Camera_Rotation[2]
+
+Sub C3D_StoreCameraState()
+	cam_state_pos_x = C3D_Camera_Position[0]
+	cam_state_pos_y = C3D_Camera_Position[1]
+	cam_state_pos_z = C3D_Camera_Position[2]
+
+	cam_state_rot_x = C3D_Camera_Rotation[0]
+	cam_state_rot_y = C3D_Camera_Rotation[1]
+	cam_state_rot_z = C3D_Camera_Rotation[2]
+End Sub
+
+Sub C3D_LoadCameraState()
+	C3D_Camera_Position[0] = cam_state_pos_x
+	C3D_Camera_Position[1] = cam_state_pos_y
+	C3D_Camera_Position[2] = cam_state_pos_z
+
+	C3D_Camera_Rotation[0] = cam_state_rot_x
+	C3D_Camera_Rotation[1] = cam_state_rot_y
+	C3D_Camera_Rotation[2] = cam_state_rot_z
+End Sub
+
+
+' A function to rotate a point around the x axis by a given angle in degrees
+Sub rotate_point_on_X(ByRef point_x, ByRef point_y, ByRef point_z, angle)
+    angle = Radians(angle)
+    x = point_x
+    y = point_y * cos(angle) - point_z * sin(angle)
+    z = point_y * sin(angle) + point_z * cos(angle)
+    point_x = x
+    point_y = y
+    point_z = z
+End Sub
+
+' A function to rotate a point around the y axis by a given angle in degrees
+Sub rotate_point_on_Y(ByRef point_x, ByRef point_y, ByRef point_z, angle)
+    angle = Radians(angle)
+    x = point_x * cos(angle) + point_z * sin(angle)
+    y = point_y
+    z = -point_x * sin(angle) + point_z * cos(angle)
+    point_x = x
+    point_y = y
+    point_z = z
+End Sub
+
+' A function to rotate a point around the z axis by a given angle in degrees
+Sub rotate_point_on_Z(ByRef point_x, ByRef point_y, ByRef point_z, angle)
+    angle = Radians(angle)
+    x = point_x * cos(angle) - point_y * sin(angle)
+    y = point_x * sin(angle) + point_y * cos(angle)
+    z = point_z
+    point_x = x
+    point_y = y
+    point_z = z   
+End Sub
+
+' A function to move a point a given distance in the direction it is facing
+Sub C3D_GetForwardVector(position_x, position_y, position_z, rotation_x, rotation_y, rotation_z, distance, ByRef x_out, ByRef y_out, ByRef z_out)
+    ' Rotate the forward direction vector based on the rotation angles
+    forward_x = 0
+    forward_y = 0
+    forward_z = 1
+    'Print "IN[1]: ";position_x;", ";position_y;", ";position_z;", ";rotation_x;", ";rotation_y;", ";rotation_z;", ";distance
+    rotate_point_on_X(forward_x, forward_y, forward_z, -rotation_x)
+    rotate_point_on_Y(forward_x, forward_y, forward_z, -rotation_y)
+    rotate_point_on_Z(forward_x, forward_y, forward_z, -rotation_z)
+    'Print "FW: ";forward_x;", ";forward_y;", ";forward_z
+
+    ' Calculate the new position by moving in the direction of the rotated forward vector
+    x_out = position_x + distance * forward_x
+    y_out = position_y + distance * forward_y
+    z_out = position_z + distance * forward_z
 End Sub
 
 
@@ -129,18 +210,6 @@ sub calculateTargetVector(target, cameraPosition, axis, rotationAngle)
     C3D_DeleteMatrix(forward)
     C3D_DeleteMatrix(newForward)
 end sub
-
-sub normalize(m, m_out)
-	ln = Sqrt( MatrixValue(m, 0, 0)^2 + MatrixValue(m, 1, 0)^2 + MatrixValue(m, 2, 0)^2 )
-	ScalarMatrix(m, m_out, 1/ln)
-end sub
-
-Sub crossProduct(v1, v2, result)
-    DimMatrix(result, 3, 1, 0)
-    SetMatrixValue(result, 0, 0, MatrixValue(v1, 1, 0) * MatrixValue(v2, 2, 0) - MatrixValue(v1, 2, 0) * MatrixValue(v2, 1, 0))
-    SetMatrixValue(result, 1, 0, MatrixValue(v1, 2, 0) * MatrixValue(v2, 0, 0) - MatrixValue(v1, 0, 0) * MatrixValue(v2, 2, 0))
-    SetMatrixValue(result, 2, 0, MatrixValue(v1, 0, 0) * MatrixValue(v2, 1, 0) - MatrixValue(v1, 1, 0) * MatrixValue(v2, 0, 0))
-End Sub
 
 sub calculateUpVector(up, cameraPosition, target)
     ' Step 1: Calculate the forward vector
@@ -212,60 +281,54 @@ sub calculateViewMatrix(vrx, vry, vrz)
 End Sub
 
 
+'// Compute the rotation angles required to look at an object from a camera position
+Sub lookAt(cameraPos_x, cameraPos_y, cameraPos_z, objectPos_x, objectPos_y, objectPos_z, ByRef x_angle, ByRef y_angle, ByRef z_angle)
+  '// Compute the direction vector from the camera to the object
+  Print "LOOK DATA = "; cameraPos_x;", ";cameraPos_y;", ";cameraPos_z;", ";objectPos_x;", ";objectPos_y;", ";objectPos_z
+  mdir = C3D_CreateMatrix(3,1)
+  world_up = C3D_CreateMatrix(3,1)
+  cam_up = C3D_CreateMatrix(3,1)
+  cam_right = C3D_CreateMatrix(3,1)
+  
+  cameraPos = C3D_CreateMatrix(3,1)
+  objectPos = C3D_CreateMatrix(3,1)
+  
+  SetMatrixValue(cameraPos, 0, 0, cameraPos_x)
+  SetMatrixValue(cameraPos, 1, 0, cameraPos_y)
+  SetMatrixValue(cameraPos, 2, 0, cameraPos_z)
+  
+  SetMatrixValue(objectPos, 0, 0, objectPos_x)
+  SetMatrixValue(objectPos, 1, 0, objectPos_y)
+  SetMatrixValue(objectPos, 2, 0, objectPos_z)
+  
+  SubtractMatrix(objectPos, cameraPos, mdir)
+  normalize(mdir, mdir)
 
+  '// Compute the angle to rotate around the x-axis
+  x_angle = Degrees(ASin(-1*MatrixValue(mdir,1,0)))
 
+  '// Compute the angle to rotate around the y-axis
+  y_angle = Degrees(ATan2(-1* MatrixValue(mdir,0,0), -1 * MatrixValue(mdir,2,0)))
 
-Dim C3D_Prev_MouseX
-Dim C3D_Prev_MouseY
-
-Dim C3D_MouseX
-Dim C3D_MouseY
-
-Dim C3D_Prev_MouseButton[3]
-Dim C3D_MouseButton[3]
-
-C3D_Mouse_Sensitivity = 0.3
-
-Sub C3D_UpdateMouseState()
-	C3D_Prev_MouseX = C3D_MouseX
-	C3D_Prev_MouseY = C3D_MouseY
-	C3D_Prev_MouseButton[0] = C3D_MouseButton[0]
-	C3D_Prev_MouseButton[1] = C3D_MouseButton[1]
-	C3D_Prev_MouseButton[2] = C3D_MouseButton[2]
-	GetMouse(C3D_MouseX, C3D_MouseY, C3D_MouseButton[0], C3D_MouseButton[1], C3D_MouseButton[2])
-End Sub
-
-
-'This Does not currently work
-Sub C3D_SetFPSCamera()
-	C3D_UpdateMouseState()
-	
-	Dim mx_delta, my_delta
-	
-	If C3D_MouseButton[0] Then
-		mx_delta = (C3D_MouseX - C3D_Prev_MouseX) * C3D_Mouse_Sensitivity
-		my_delta = (C3D_MouseY - C3D_Prev_MouseY) * C3D_Mouse_Sensitivity
-	End If
-	
-	C3D_RotateCamera(0, mx_delta, 0)
-	C3D_RotateCamera(my_delta, 0, 0)
-	
-	If Key(K_A) Then
-		C3D_MoveCamera(-1, 0, 0)
-	ElseIf Key(K_D) Then
-		C3D_MoveCamera(1, 0, 0)
-	End If
-	
-	If Key(K_W) Then
-		C3D_MoveCamera(0, 0, -1)
-	ElseIf Key(K_S) Then
-		C3D_MoveCamera(0, 0, 1)
-	End If
-	
-	If Key(K_R) Then
-		C3D_MoveCamera(0, 1, 0)
-	ElseIf Key(K_F) Then
-		C3D_MoveCamera(0, -1, 0)
-	End If
-
+  '// Compute the angle to rotate around the z-axis
+  'Vector3 world_up(0, 1, 0);
+  SetMatrixValue(world_up, 0, 0, 0)
+  SetMatrixValue(world_up, 1, 0, 1)
+  SetMatrixValue(world_up, 2, 0, 0)
+  
+  'Vector3 cam_right = world_up.cross(dir).normalize();
+  crossProduct(world_up, mdir, cam_right)
+  normalize(cam_right, cam_right)
+  
+  'Vector3 cam_up = dir.cross(cam_right);
+  crossProduct(mdir, cam_right, cam_up)
+  
+  z_angle = Degrees(ATan2(MatrixValue(cam_up,0,0), MatrixValue(cam_up,1,0)))
+  
+  C3D_DeleteMatrix(mdir)
+  C3D_DeleteMatrix(world_up)
+  C3D_DeleteMatrix(cam_up)
+  C3D_DeleteMatrix(cam_right)
+  C3D_DeleteMatrix(cameraPos)
+  C3D_DeleteMatrix(objectPos)
 End Sub

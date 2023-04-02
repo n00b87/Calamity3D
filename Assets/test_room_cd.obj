@@ -1,0 +1,59 @@
+# Created with Anim8or 1.00
+# Object "object02":
+
+mtllib test_room_cd.mtl
+
+# Shape "mesh01":
+g mesh01
+# No. points 8:
+v -533.03 -66.503 -534.251
+v -533.03 -66.503 534.251
+v -533.03 365.215 -534.251
+v -533.03 365.215 534.251
+v 535.472 -66.503 -534.251
+v 535.472 -66.503 534.251
+v 535.472 365.215 -534.251
+v 535.472 365.215 534.251
+
+# No. normals 20:
+vn -1 0 0
+vn 1 0 0
+vn 0 1 0
+vn 0 -1 0
+vn -1 0 0
+vn 0 -1 0
+vn -1 0 0
+vn 0 -1 0
+vn -1 0 0
+vn 0 1 0
+vn -1 0 0
+vn 0 1 0
+vn 1 0 0
+vn 0 -1 0
+vn 1 0 0
+vn 0 -1 0
+vn 1 0 0
+vn 0 1 0
+vn 1 0 0
+vn 0 1 0
+
+# No. texture coordinates 8:
+vt 0 0
+vt 0 0
+vt 0 1
+vt 0 1
+vt 1 0
+vt 1 0
+vt 1 1
+vt 1 1
+
+# No. faces 4:
+
+usemtl ___default___
+
+f 2/2/7 4/4/11 3/3/9 1/1/5
+f 7/7/17 8/8/19 6/6/15 5/5/13
+f 4/4/12 8/8/20 7/7/18 3/3/10
+f 5/5/14 6/6/16 2/2/8 1/1/6
+
+# End of Object "object02"

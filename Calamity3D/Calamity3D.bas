@@ -2,7 +2,7 @@ Include Once
 
 C3D_CAMERA_LENS = 270 'Distance from 0, facing down negative z-axis
 
-C3D_MAX_Z_DEPTH = 2000
+C3D_MAX_Z_DEPTH = 3500
 
 C3D_GRAPH_LEFT = -20
 C3D_GRAPH_RIGHT = 20
@@ -41,9 +41,18 @@ Sub C3D_UpdateGlobalParameters()
 	C3D_SCREEN_GRAPH_OFFSET_Y = C3D_SCREEN_HEIGHT
 End Sub
 
+Include "Calamity3D/C3D_Utility.bas"
+Include "Calamity3D/C3D_Collision.bas"
 Include "Calamity3D/C3D_Scene.bas"
 Include "Calamity3D/C3D_Mesh.bas"
 Include "Calamity3D/C3D_Image.bas"
 Include "Calamity3D/C3D_Sprite.bas"
 Include "Calamity3D/C3D_Camera.bas"
 Include "Calamity3D/C3D_Window.bas"
+
+
+
+C3D_Camera_Matrix_T = C3D_CreateMatrix(4,4)
+C3D_Camera_Matrix_RX = C3D_CreateMatrix(4,4)
+C3D_Camera_Matrix_RY = C3D_CreateMatrix(4,4)
+C3D_Camera_Matrix_RZ = C3D_CreateMatrix(4,4)

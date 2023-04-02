@@ -23,6 +23,21 @@ Sub C3D_DeleteMatrix(m)
 End Sub
 
 
+Function dot(v1, v2)
+    return MatrixValue(v1, 0, 0) * MatrixValue(v2, 0, 0) + MatrixValue(v1, 1, 0) * MatrixValue(v2, 1, 0) + MatrixValue(v1, 2, 0) * MatrixValue(v2, 2, 0)
+End Function
+
+Sub crossProduct(v1, v2, result)
+    DimMatrix(result, 3, 1, 0)
+    SetMatrixValue(result, 0, 0, MatrixValue(v1, 1, 0) * MatrixValue(v2, 2, 0) - MatrixValue(v1, 2, 0) * MatrixValue(v2, 1, 0))
+    SetMatrixValue(result, 1, 0, MatrixValue(v1, 2, 0) * MatrixValue(v2, 0, 0) - MatrixValue(v1, 0, 0) * MatrixValue(v2, 2, 0))
+    SetMatrixValue(result, 2, 0, MatrixValue(v1, 0, 0) * MatrixValue(v2, 1, 0) - MatrixValue(v1, 1, 0) * MatrixValue(v2, 0, 0))
+End Sub
+
+sub normalize(m, m_out)
+	ln = Sqrt( MatrixValue(m, 0, 0)^2 + MatrixValue(m, 1, 0)^2 + MatrixValue(m, 2, 0)^2 )
+	ScalarMatrix(m, m_out, 1/ln)
+end sub
 
 
 C3D_AXIS_X = 0

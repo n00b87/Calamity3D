@@ -18,6 +18,10 @@ Sub C3D_DrawMeshFace(actor, face)
 	'Dim vertex[ C3D_MAX_VERTICES, 8]
 	'Dim index[ (C3D_MAX_VERTICES-3) * 3 + 3 + 12 ] 'After 3 vertices, every new vertex adds 3 indices
 	'index_count = 0
+	If Not C3D_Actor_Visible[actor] then
+		Return
+	End If
+	
 	mesh = C3D_Actor_Source[actor]
 	f_vertex_count = C3D_Mesh_Face_Vertex_Count[mesh, face]
 	
@@ -51,6 +55,12 @@ Sub C3D_DrawMeshFace(actor, face)
 			index[index_count+1] = vi-1
 			index[index_count+2] = vi
 			index_count = index_count + 3
+			'If Key(K_I) Then
+			'	Print "I[";index_count-3;"] = ";vi_zero; "  vt = "; vertex[vi_zero, 0]; ", "; vertex[vi_zero, 1]
+			'	Print "I[";index_count-2;"] = ";vi-1   ; "  vt = "; vertex[vi-1, 0]; ", "; vertex[vi-1, 1]
+			'	Print "I[";index_count-1;"] = ";vi     ; "  vt = "; vertex[vi, 0]; ", "; vertex[vi, 1]
+			'	Print ""
+			'End If
 		End If
 		vi = vi + 1
 	Next
@@ -128,6 +138,34 @@ C3D_Rendered_Faces_Count = 0
 
 Sub C3D_RenderScene()
 	
+	ArrayFill(C3D_Actor_Collisions, 0)
+	ArrayFill(C3D_Stage_Geometry_Actor_Collisions, 0)
+	
+	cam_x = C3D_Camera_Position[0]
+	cam_y = C3D_Camera_Position[1]
+	cam_z = C3D_Camera_Position[2]
+	
+	C3D_inZone_Actors_Count = 0
+	
+	For i = 0 to C3D_MAX_ACTORS-1
+		If Not C3D_Actor_Active[i] then
+			continue
+		End if
+		
+		x = C3D_Actor_Position[i,0]
+		y = C3D_Actor_Position[i,1]
+		z = C3D_Actor_Position[i,2]
+		
+		If C3D_Distance3D(cam_x, cam_y, cam_z, x, y, z) <= C3D_MAX_Z_DEPTH Then
+			C3D_inZone_Actors[C3D_inZone_Actors_Count] = i
+			C3D_inZone_Actors_Count = C3D_inZone_Actors_Count + 1
+		End If
+	Next
+	
+	For i = 0 to C3D_inZone_Actors_Count - 1
+		setCollisionData(C3D_inZone_Actors[i])
+	Next
+	
 	C3D_ComputeTransforms()
 	C3D_ComputeVisibleFaces()
 	
@@ -160,7 +198,7 @@ Sub C3D_RenderScene()
 	
 	Canvas(C3D_CANVAS_RENDER)
 	ClearCanvas()
-	
+	'drawimage_blit_ex(C3D_TEXTURE_MAP, 0, 0, 128, 128, 0, 0, 512, 512)
 	DrawGeometry(C3D_TEXTURE_MAP, vertex_count, vertex, index_count, index)
 	
 End Sub
