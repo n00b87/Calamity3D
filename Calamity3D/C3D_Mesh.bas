@@ -22,6 +22,7 @@ Dim C3D_Mesh_TCoord_Count[C3D_MAX_MESH]
 
 Dim C3D_Mesh_Face_Vertex[C3D_MAX_MESH, C3D_MAX_FACES, 4] 'references a point in C3D_Mesh_Vertex
 Dim C3D_Mesh_Face_TCoord[C3D_MAX_MESH, C3D_MAX_FACES, 4] 'references a point in C3D_Mesh_TCoord
+Dim C3D_Mesh_Face_Div_TCoord[C3D_MAX_MESH, C3D_MAX_FACES, 4]
 Dim C3D_Mesh_Face_Vertex_Count[C3D_MAX_MESH, C3D_MAX_FACES]
 Dim C3D_Mesh_Face_TCoord_Count[C3D_MAX_MESH, C3D_MAX_FACES]
 Dim C3D_Mesh_Face_Count[C3D_MAX_MESH]
@@ -1216,6 +1217,12 @@ Sub C3D_ComputeVisibleFaces()
 	
 	'Setting All faces visible for now
 	
+	ArrayFill(C3D_Image_TM_Div, -1)
+	
+	div = 0
+	div_row = 0
+	div_col = 0
+	
 	For actor = 0 to C3D_MAX_ACTORS-1
 		
 		C3D_Actor_Face_inSite_Count[actor] = 0
@@ -1239,6 +1246,26 @@ Sub C3D_ComputeVisibleFaces()
 				C3D_ZSort_Faces[face_min_z, C3D_ZSort_Faces_Count[face_min_z]] = C3D_Visible_Faces_Count
 				C3D_ZSort_Faces_Distance[face_min_z, C3D_ZSort_Faces_Count[face_min_z]] = z_avg
 				C3D_ZSort_Faces_Count[face_min_z] = C3D_ZSort_Faces_Count[face_min_z] + 1
+				
+				texture = C3D_Mesh_Texture[mesh]
+				If C3D_Image_TM_Div[texture, 0] < 0 And div < C3D_MAX_TEXTURE_MAP_DIV Then
+					C3D_Image_TM_Div[texture, 0] = div
+					C3D_Image_TM_Div[texture, 1] = div_row
+					C3D_Image_TM_Div[texture, 2] = div_col
+					
+					div_col = div_col + 1
+					If div_col >= C3D_TEXTURE_MAP_DIV[div, 1] Then
+						div_col = 0
+						div_row = div_row + 1
+					End If
+					
+					If div_row >= C3D_TEXTURE_MAP_DIV[div, 0] Then
+						div_row = 0
+						div_col = 0
+						div = div + 1
+					End If
+					
+				End If
 			End If
 			C3D_Visible_Faces_Count = C3D_Visible_Faces_Count + 1
 		Next

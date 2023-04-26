@@ -97,6 +97,9 @@ End Function
 
 const ATan2 = n_ATan2
 
+Function Interpolate(min_a, max_a, mid_a, min_b, max_b)
+	Return ( (mid_a-min_a)/(max_a-min_a)) * (max_b-min_b) + min_b
+End Function
 
 'x = 1
 'y = 2

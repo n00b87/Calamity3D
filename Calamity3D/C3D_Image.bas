@@ -1,11 +1,16 @@
 Include Once
 Include "Calamity3D/C3D_Utility.bas"
 
-C3D_MAX_IMAGES = 5
+C3D_MAX_IMAGES = 100
 
 Dim C3D_Image[C3D_MAX_IMAGES]
 Dim C3D_Image_Size[C3D_MAX_IMAGES, 2]
 Dim C3D_Image_Loaded[C3D_MAX_IMAGES]
+Dim C3D_Image_TM_Div[C3D_MAX_IMAGES, 3]
+
+ArrayFill(C3D_Image, -1)
+ArrayFill(C3D_Image_Loaded, 0)
+ArrayFill(C3D_Image_TM_Div, -1)
 
 Function C3D_LoadImage(img_file$)
 	If Not FileExists(img_file$) Then
