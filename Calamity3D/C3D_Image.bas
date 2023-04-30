@@ -8,6 +8,14 @@ Dim C3D_Image_Size[C3D_MAX_IMAGES, 2]
 Dim C3D_Image_Loaded[C3D_MAX_IMAGES]
 Dim C3D_Image_TM_Div[C3D_MAX_IMAGES, 3]
 
+'---TEXTURE MAP---------------
+C3D_Image[0] = 0
+C3D_Image_Loaded[0] = True
+'-----------------------------
+
+Dim C3D_Image_Width[C3D_MAX_IMAGES]
+Dim C3D_Image_Height[C3D_MAX_IMAGES]
+
 ArrayFill(C3D_Image, -1)
 ArrayFill(C3D_Image_Loaded, 0)
 ArrayFill(C3D_Image_TM_Div, -1)
@@ -41,6 +49,7 @@ Function C3D_LoadImage(img_file$)
 		Return -1
 	Else
 		LoadImage(img_slot, img_file$)
+		GetImageSize(img_slot, C3D_Image_Width[c_img], C3D_Image_Height[c_img])
 		C3D_Image[c_img] = img_slot
 		C3D_Image_Loaded[c_img] = True
 		GetImageSize(img_slot, C3D_Image_Size[c_img, 0], C3D_Image_Size[c_img, 1])

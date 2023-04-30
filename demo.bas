@@ -79,7 +79,7 @@ C3D_AddCollisionMesh(test_level_mesh, test_level_mesh_cd)
 squid_mesh = C3D_LoadMesh("Assets/squid_mapped.obj")
 squid = C3D_CreateActor(C3D_ACTOR_TYPE_MESH, squid_mesh)
 'squid = 99
-'C3D_SetMeshTexture(squid_mesh, squid_map)
+C3D_SetMeshTexture(squid_mesh, squid_map)
 'C3D_RotateActor(squid, 0, -45, 0)
 
 'C3D_SetActorScale(test_level, 9)

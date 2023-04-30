@@ -1218,6 +1218,7 @@ Sub C3D_ComputeVisibleFaces()
 	'Setting All faces visible for now
 	
 	ArrayFill(C3D_Image_TM_Div, -1)
+	ArrayFill(C3D_TEXTURE_MAP_DIV_IMAGES, -1)
 	
 	div = 0
 	div_row = 0
@@ -1252,6 +1253,8 @@ Sub C3D_ComputeVisibleFaces()
 					C3D_Image_TM_Div[texture, 0] = div
 					C3D_Image_TM_Div[texture, 1] = div_row
 					C3D_Image_TM_Div[texture, 2] = div_col
+					
+					C3D_TEXTURE_MAP_DIV_IMAGES[div, div_row, div_col] = texture
 					
 					div_col = div_col + 1
 					If div_col >= C3D_TEXTURE_MAP_DIV[div, 1] Then

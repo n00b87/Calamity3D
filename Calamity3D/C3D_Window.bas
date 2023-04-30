@@ -20,12 +20,34 @@ Function C3D_SetTextureMapDivision(div, rows, cols)
 	C3D_TEXTURE_MAP_DIV_WIDTH[div] = (C3D_TEXTURE_MAP_WIDTH / (C3D_MAX_TEXTURE_MAP_DIV/2)) / cols
 	C3D_TEXTURE_MAP_DIV_HEIGHT[div] = (C3D_TEXTURE_MAP_HEIGHT / (C3D_MAX_TEXTURE_MAP_DIV/2)) / rows
 	
-	Print ""
-	Print "C3D_SetTextureMapDivision Info:"
-	Print "div = "; div; " rows = "; rows; " cols = "; cols
-	Print "TM_DIV_WIDTH = "; C3D_TEXTURE_MAP_DIV_WIDTH[div]
-	Print "TM_DIV_HEIGHT = "; C3D_TEXTURE_MAP_DIV_HEIGHT[div]
-	Print ""
+	'Print ""
+	'Print "C3D_SetTextureMapDivision Info:"
+	'Print "div = "; div; " rows = "; rows; " cols = "; cols
+	'Print "TM_DIV_WIDTH = "; C3D_TEXTURE_MAP_DIV_WIDTH[div]
+	'Print "TM_DIV_HEIGHT = "; C3D_TEXTURE_MAP_DIV_HEIGHT[div]
+	'Print ""
+	
+	C3D_TEXTURE_MAP_DIV_UV_WIDTH[div] = C3D_TEXTURE_MAP_DIV_WIDTH[div] / C3D_TEXTURE_MAP_WIDTH
+	C3D_TEXTURE_MAP_DIV_UV_HEIGHT[div] = C3D_TEXTURE_MAP_DIV_HEIGHT[div] / C3D_TEXTURE_MAP_HEIGHT
+	
+	'Print "TX UV SIZE = "; C3D_TEXTURE_MAP_DIV_UV_WIDTH[div]; " x "; C3D_TEXTURE_MAP_DIV_UV_HEIGHT[div]
+	'Print ""
+	
+	For r = 0 to rows - 1
+		For c = 0 to cols - 1
+			div_w = (C3D_TEXTURE_MAP_WIDTH / (C3D_MAX_TEXTURE_MAP_DIV/2))
+			div_h = (C3D_TEXTURE_MAP_HEIGHT / (C3D_MAX_TEXTURE_MAP_DIV/2))
+			C3D_TEXTURE_MAP_DIV_POS_X[div, r, c] = (div mod 2) * div_w + (c * C3D_TEXTURE_MAP_DIV_WIDTH[div])
+			C3D_TEXTURE_MAP_DIV_POS_Y[div, r, c] = int(div / 2) * div_h + (r * C3D_TEXTURE_MAP_DIV_HEIGHT[div])
+			
+			C3D_TEXTURE_MAP_DIV_UV_X[div, r, c] = C3D_TEXTURE_MAP_DIV_POS_X[div, r, c] / C3D_TEXTURE_MAP_WIDTH
+			C3D_TEXTURE_MAP_DIV_UV_Y[div, r, c] = C3D_TEXTURE_MAP_DIV_POS_Y[div, r, c] / C3D_TEXTURE_MAP_HEIGHT
+			
+			'Print "POS[";r;", ";c;"] = "; C3D_TEXTURE_MAP_DIV_POS_X[div, r, c];", ";C3D_TEXTURE_MAP_DIV_POS_Y[div, r, c]
+		Next
+	Next
+	
+	'Print "-----------------------------------"
 	
 	Return True
 End function

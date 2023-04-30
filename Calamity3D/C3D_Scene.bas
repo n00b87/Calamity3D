@@ -31,6 +31,16 @@ Sub C3D_DrawMeshFace(actor, face)
 	
 	vertex_count = vertex_count + f_vertex_count
 	
+	texture = C3D_Mesh_Texture[mesh]
+	div = C3D_Image_TM_Div[texture, 0]
+	div_row = C3D_Image_TM_Div[texture, 1]
+	div_col = C3D_Image_TM_Div[texture, 2]
+	
+	uv_x = C3D_TEXTURE_MAP_DIV_UV_X[div, div_row, div_col]
+	uv_y = C3D_TEXTURE_MAP_DIV_UV_Y[div, div_row, div_col]
+	uv_w = C3D_TEXTURE_MAP_DIV_UV_WIDTH[div]
+	uv_h = C3D_TEXTURE_MAP_DIV_UV_HEIGHT[div]
+	
 	vi_zero = vi
 	'Convert 3D coordinates into 2D screen location
 	For i = 0 to f_vertex_count-1
@@ -47,8 +57,8 @@ Sub C3D_DrawMeshFace(actor, face)
 		vertex[ vi, 3 ] = 255
 		vertex[ vi, 4 ] = 255
 		vertex[ vi, 5 ] = 255
-		vertex[ vi, 6 ] = C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 0] 'u
-		vertex[ vi, 7 ] = C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 1] 'v
+		vertex[ vi, 6 ] = uv_x + (uv_w * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 0]) 'u
+		vertex[ vi, 7 ] = uv_y + (uv_h * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 1]) 'v
 		
 		If i >= 2 Then
 			index[index_count] = vi_zero
@@ -195,6 +205,34 @@ Sub C3D_RenderScene()
 			Next
 		End If
 	Next
+	
+	Canvas(C3D_CANVAS_BACKBUFFER)
+	ClearCanvas()
+	
+	Dim w, h
+	
+	For div = 0 to C3D_MAX_TEXTURE_MAP_DIV-1
+		w = C3D_TEXTURE_MAP_DIV_WIDTH[div]
+		h = C3D_TEXTURE_MAP_DIV_HEIGHT[div]
+		For r = 0 to 3
+			For c = 0 to 3
+				texture = C3D_TEXTURE_MAP_DIV_IMAGES[div, r, c]
+				If texture <> -1 Then			
+					x = C3D_TEXTURE_MAP_DIV_POS_X[div, r, c]
+					y = C3D_TEXTURE_MAP_DIV_POS_Y[div, r, c]
+					src_w = C3D_Image_Width[texture]
+					src_h = C3D_Image_Height[texture]
+					DrawImage_Blit_Ex(texture, x, y, w, h, 0, 0, src_w, src_h)
+				End If
+			Next 'c
+		Next 'r
+	Next 'div
+	
+	If ImageExists(C3D_TEXTURE_MAP) Then
+		DeleteImage(C3D_TEXTURE_MAP)
+	End If
+	
+	CanvasClip(C3D_TEXTURE_MAP, 0, 0, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 1)
 	
 	Canvas(C3D_CANVAS_RENDER)
 	ClearCanvas()
