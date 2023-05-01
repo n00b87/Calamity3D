@@ -92,8 +92,28 @@ Sub C3D_Init(title$, w, h, fullscreen, vsync)
 	C3D_SetScreenOcclusionRange()
 End Sub
 
+Sub C3D_Init_CurrentWindow(w, h)
+	CanvasClose(C3D_CANVAS_RENDER)
+	CanvasClose(C3D_CANVAS_BACKBUFFER)
+	
+	CanvasOpen(6, w, h, 0, 0, w, h, 0) ' Render View
+	CanvasOpen(C3D_CANVAS_BACKBUFFER, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 0, 0, 256, 256, 0) ' Back Buffer
+	SetCanvasVisible(C3D_CANVAS_BACKBUFFER, false)
+	setclearcolor(RGB(153,217,234))
+	
+	C3D_SetTextureMapDivision(0, 2, 2) 'Default Terrain Division
+	C3D_SetTextureMapDivision(1, 2, 2)
+	C3D_SetTextureMapDivision(2, 2, 2)
+	C3D_SetTextureMapDivision(3, 2, 2)
+	
+	C3D_SCREEN_WIDTH = w
+	C3D_SCREEN_HEIGHT = h
+	C3D_UpdateGlobalParameters()
+	C3D_SetScreenOcclusionRange()
+End Sub
+
 C3D_Update_Timer = 0
-C3D_FPS_CAP = 30
+C3D_FPS_CAP = 60
 
 Sub C3D_Update()
 	t = timer

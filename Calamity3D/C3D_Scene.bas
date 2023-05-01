@@ -235,6 +235,7 @@ Sub C3D_RenderScene()
 	CanvasClip(C3D_TEXTURE_MAP, 0, 0, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 1)
 	
 	Canvas(C3D_CANVAS_RENDER)
+	setclearcolor(RGB(153,217,234))
 	ClearCanvas()
 	'drawimage_blit_ex(C3D_TEXTURE_MAP, 0, 0, 128, 128, 0, 0, 512, 512)
 	DrawGeometry(C3D_TEXTURE_MAP, vertex_count, vertex, index_count, index)
