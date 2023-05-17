@@ -217,7 +217,7 @@ C3D_SetCameraRotation(29, -128, 0)
 cam_speed = 40
 cam_rot_speed = 4
 
-gravity = 24
+gravity = 0 '24
 
 mx = MouseX()
 my = MouseY()
@@ -309,6 +309,14 @@ While Not Key(K_ESCAPE)
 	End If
 	
 	MoveFPSCameraActor(cam_obj, 0, -gravity, 0)
+	
+	If Key(K_1) Then
+		C3D_RotateActor(squid, 0, 2, 0)
+	ElseIf Key(K_2) Then
+		C3D_RotateActor(squid, 2, 0, 0)
+	ElseIf Key(K_3) Then
+		C3D_RotateActor(squid, 0, 0, 2)
+	End If
 	
 	If Key(K_P) Then
 		actor = cam_obj

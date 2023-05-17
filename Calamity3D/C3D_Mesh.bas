@@ -1363,8 +1363,12 @@ Sub C3D_ComputeTransforms()
 	vx = C3D_CreateMatrix(4,4)
 	vy = C3D_CreateMatrix(4,4)
 	vz = C3D_CreateMatrix(4,4)
+	view_matrix = C3D_CreateMatrix(4,4)
 	
 	calculateViewMatrix(vx, vy, vz)
+	
+	MultiplyMatrix(vx, vy, tmp_matrix1)
+	MultiplyMatrix(tmp_matrix1, vz, view_matrix)
 	
 	For actor = 0 to C3D_MAX_ACTORS-1
 		
@@ -1386,9 +1390,13 @@ Sub C3D_ComputeTransforms()
 		C3D_Actor_Position[actor, 2] = C3D_ActorPositionZ(actor)
 		
 		'Moves the vertices based on the actors local rotation
-		MultiplyMatrix(C3D_Actor_Matrix[actor, C3D_ACTOR_MATRIX_RX], C3D_Mesh_Vertex_Matrix[mesh], tmp_matrix1)
-		MultiplyMatrix(C3D_Actor_Matrix[actor, C3D_ACTOR_MATRIX_RY], tmp_matrix1, tmp_matrix2)
-		MultiplyMatrix(C3D_Actor_Matrix[actor, C3D_ACTOR_MATRIX_RZ], tmp_matrix2, tmp_matrix1)
+		MultiplyMatrix(C3D_Actor_Matrix[actor, C3D_ACTOR_MATRIX_RY], C3D_Actor_Matrix[actor, C3D_ACTOR_MATRIX_RX], tmp_matrix1)
+		MultiplyMatrix(tmp_matrix1, C3D_Actor_Matrix[actor, C3D_ACTOR_MATRIX_RZ], tmp_matrix2)
+		MultiplyMatrix(tmp_matrix2, C3D_Mesh_Vertex_Matrix[mesh], tmp_matrix1)
+		
+		'MultiplyMatrix(C3D_Actor_Matrix[actor, C3D_ACTOR_MATRIX_RX], C3D_Mesh_Vertex_Matrix[mesh], tmp_matrix1)
+		'MultiplyMatrix(C3D_Actor_Matrix[actor, C3D_ACTOR_MATRIX_RY], tmp_matrix1, tmp_matrix2)
+		'MultiplyMatrix(C3D_Actor_Matrix[actor, C3D_ACTOR_MATRIX_RZ], tmp_matrix2, tmp_matrix1)
 		
 		ScalarMatrix(tmp_matrix1, tmp_matrix1, scale)
 		
@@ -1412,9 +1420,13 @@ Sub C3D_ComputeTransforms()
 		SubtractMatrix(tmp_matrix2, camera_matrix_t, tmp_matrix1)
 		
 		'Apply orientation in view space
-		MultiplyMatrix(vy, tmp_matrix1, tmp_matrix2)
-		MultiplyMatrix(vx, tmp_matrix2, tmp_matrix1)
-		MultiplyMatrix(vz, tmp_matrix1, C3D_Actor_Matrix[actor, 0])
+		'MultiplyMatrix(vx, vy, tmp_matrix2)
+		'MultiplyMatrix(tmp_matrix2, vz, vx)
+		MultiplyMatrix(view_matrix, tmp_matrix1, C3D_Actor_Matrix[actor, 0])
+		
+		'MultiplyMatrix(vy, tmp_matrix1, tmp_matrix2)
+		'MultiplyMatrix(vx, tmp_matrix2, tmp_matrix1)
+		'MultiplyMatrix(vz, tmp_matrix1, C3D_Actor_Matrix[actor, 0])
 		
 		FillMatrixRows(camera_matrix_t, 0, 1, C3D_CAMERA_CENTER_X)
 		FillMatrixRows(camera_matrix_t, 1, 1, C3D_CAMERA_CENTER_Y)
@@ -1430,6 +1442,7 @@ Sub C3D_ComputeTransforms()
 	C3D_DeleteMatrix(vx)
 	C3D_DeleteMatrix(vy)
 	C3D_DeleteMatrix(vz)	
+	C3D_DeleteMatrix(view_matrix)
 End Sub
 
 
