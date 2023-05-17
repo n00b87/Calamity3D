@@ -254,6 +254,12 @@ End Sub
 
 C3D_MAX_ACTORS = 100
 
+Dim actor_distance[ C3D_MAX_ACTORS ]
+Dim actor_min_screen_x[ C3D_MAX_ACTORS ]
+Dim actor_min_screen_y[ C3D_MAX_ACTORS ]
+Dim actor_max_screen_x[ C3D_MAX_ACTORS ]
+Dim actor_max_screen_y[ C3D_MAX_ACTORS ]
+
 Dim C3D_Actor_Active[C3D_MAX_ACTORS]
 
 Dim C3D_Actor_Visible[C3D_MAX_ACTORS]
@@ -899,7 +905,7 @@ Sub setCollisionData(actor)
 		distance = C3D_Distance2D(actor_cx1, actor_cz1, n_actor_cx1, n_actor_cz1)
 		
 		'if key(k_m) then
-			Print "N --> Actor ["; n_actor_cx1; ", "; n_actor_cy1; ", "; n_actor_cz1; " ]"
+			'Print "N --> Actor ["; n_actor_cx1; ", "; n_actor_cy1; ", "; n_actor_cz1; " ]"
 		'end if
 		
 		if distance <= (actor_cr + n_actor_cr) then
@@ -1077,6 +1083,12 @@ Sub C3D_SetActorRotation(actor, x, y, z)
 	C3D_SetRotationMatrix(C3D_Actor_Matrix[actor, C3D_ACTOR_MATRIX_RZ], C3D_AXIS_Z, z)
 End Sub
 
+Sub C3D_GetActorRotation(actor, ByRef x, ByRef y, ByRef z)
+	x = C3D_Actor_Rotation[actor, 0] = x
+	y = C3D_Actor_Rotation[actor, 1] = y
+	z = C3D_Actor_Rotation[actor, 2] = z
+End Sub
+
 Sub C3D_RotateActor(actor, x, y, z)
 	If x Then
 		C3D_Actor_Rotation[actor, 0] = ((C3D_Actor_Rotation[actor, 0] + x) MOD 360)
@@ -1097,6 +1109,10 @@ End Sub
 
 Sub C3D_SetActorScale(actor, s_value)
 	C3D_Actor_Scale[actor] = s_value
+End Sub
+
+Sub C3D_GetActorScale(actor, ByRef s_value)
+	s_value = C3D_Actor_Scale[actor]
 End Sub
 
 Sub C3D_ScaleActor(actor, s_value)
@@ -1191,7 +1207,13 @@ Function SetFaceZ(actor, face_num, ByRef z_avg)
 	
 	C3D_Actor_Face_ZOrder[actor, face_num] = face_min_z
 	
-	If face_max_z >= C3D_CAMERA_LENS Then
+	'If key(K_P) Then
+	'	Print "Cam = ";C3D_CAMERA_LENS;"   MD=";C3D_MAX_Z_DEPTH
+	'	print "--Min/Max = "; face_min_z; ", "; face_max_z
+	'	Print ""
+	'End If
+	
+	If face_min_z >= C3D_CAMERA_LENS Then
 		Return -1
 	Else
 		Return (C3D_CAMERA_LENS - face_min_z)
@@ -1255,6 +1277,7 @@ Sub C3D_ComputeVisibleFaces()
 					C3D_Image_TM_Div[texture, 2] = div_col
 					
 					C3D_TEXTURE_MAP_DIV_IMAGES[div, div_row, div_col] = texture
+					'print "texture = ";texture
 					
 					div_col = div_col + 1
 					If div_col >= C3D_TEXTURE_MAP_DIV[div, 1] Then
@@ -1286,6 +1309,50 @@ End Sub
 'Dim C3D_Actor_Collision_Mesh[C3D_MAX_ACTORS]
 'Dim C3D_Actor_Collisions[C3D_MAX_ACTORS, C3D_MAX_ACTORS]
 
+Function C3D_ActorInViewRange(actor)
+	If actor < 0 Then
+		Return False
+	End If
+	Return C3D_Actor_Active[actor]
+End Function
+
+'Returns the closest actor at x,y position on screen
+Function C3D_PickActor(x, y)
+	pick_actor = -1
+	
+	pick_dist = C3D_MAX_Z_DEPTH
+	
+	For actor = 0 to C3D_MAX_ACTORS-1
+	
+		If Not C3D_ActorInViewRange(actor) Then
+			Continue
+		End If
+	
+		d = actor_distance[ actor ]
+		min_x = actor_min_screen_x[ actor ]
+		min_y = actor_min_screen_y[ actor ]
+		max_x = actor_max_screen_x[ actor ]
+		max_y = actor_max_screen_y[ actor ]
+		
+		'print "actor[";actor;"] -> (";min_x;", ";min_y;") (";max_x;", ";max_y;")  dist = ";d
+		
+		If x >= min_x And x <= max_x Then
+			If y >= min_y And y <= max_y Then
+				If d > 0 And d < pick_dist Then
+					pick_actor = actor
+					pick_dist = d
+				End If
+			End If
+		End If
+	
+	Next
+	
+	'Print ""
+	Return pick_actor
+	
+End Function
+
+
 Sub C3D_ComputeTransforms()
 	Dim tmp_matrix1, tmp_matrix2, camera_matrix_t
 	
@@ -1302,7 +1369,7 @@ Sub C3D_ComputeTransforms()
 	For actor = 0 to C3D_MAX_ACTORS-1
 		
 		'If the actor isn't part of the scene then check the next one
-		If Not C3D_Actor_Active[actor] Then
+		If Not (C3D_Actor_Active[actor] And C3D_ActorInViewRange(actor)) Then
 			Continue
 		End If
 		

@@ -15,3 +15,4 @@ SOURCE_REL:strings.bas
 SOURCE_REL:C3D_Matrix.bas
 SOURCE_REL:C3D_Window.bas
 SOURCE_REL:C3D_Collision.bas
+SOURCE_REL:C3D_AN8.bas

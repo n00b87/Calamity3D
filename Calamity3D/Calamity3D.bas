@@ -2,7 +2,10 @@ Include Once
 
 C3D_CAMERA_LENS = 270 'Distance from 0, facing down negative z-axis
 
-C3D_MAX_Z_DEPTH = 3500
+C3D_MAX_Z_DEPTH = 5000
+
+C3D_LLOD_DEPTH = 1000
+C3D_MAX_LOD_DEPTH = 7000
 
 C3D_GRAPH_LEFT = -20
 C3D_GRAPH_RIGHT = 20

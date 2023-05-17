@@ -23,6 +23,7 @@ Sub C3D_DrawMeshFace(actor, face)
 	End If
 	
 	mesh = C3D_Actor_Source[actor]
+	
 	f_vertex_count = C3D_Mesh_Face_Vertex_Count[mesh, face]
 	
 	if f_vertex_count > 4 Then
@@ -48,11 +49,49 @@ Sub C3D_DrawMeshFace(actor, face)
 		'z = C3D_Actor_Vertex[actor, vert_num, 2 ]
 		z = MatrixValue(C3D_Actor_Matrix[actor, 0], 2, vert_num)
 		distance = C3D_CAMERA_LENS - z
-		C3D_Ternary(distance=0, distance, 1, distance)
-		'vertex[ vi, 0 ] = (C3D_CAMERA_LENS * C3D_Actor_Vertex[actor, vert_num, 0 ] / distance) + C3D_SCREEN_GRAPH_OFFSET_X
-		'vertex[ vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * C3D_Actor_Vertex[actor, vert_num, 1 ] / distance)
-		vertex[ vi, 0 ] = (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 0, vert_num) / distance) + C3D_SCREEN_GRAPH_OFFSET_X
-		vertex[ vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 1, vert_num) / distance)
+		
+		'debug
+		p_dist = distance
+			
+		if distance < 0 Then
+			cd = 2
+			cx = (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 0, vert_num) / cd) + C3D_SCREEN_GRAPH_OFFSET_X
+			cy = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 1, vert_num) / cd)
+			dd = 1
+			dx = (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 0, vert_num) / dd) + C3D_SCREEN_GRAPH_OFFSET_X
+			dy = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 1, vert_num) / dd)
+			point_on_line(cx, cy, dx, dy, 2 - distance, vertex[ vi, 0 ], vertex[ vi, 1 ])
+			
+			'if key(k_b) then
+			'	print "Mat: ";MatrixValue(C3D_Actor_Matrix[actor, 0], 0, vert_num);", ";MatrixValue(C3D_Actor_Matrix[actor, 0], 1, vert_num)
+			'	print "Point: ";cx;", ";cy;", ";dx;", ";dy;", ";(10-distance);", ";vertex[ vi, 0 ];", ";vertex[ vi, 1 ]
+			'	print ""
+			'elseif key(k_n) Then
+			'	vertex[ vi, 0] = 1000
+			'	vertex[ vi, 1] = -1000
+			'end if
+			'distance = abs(distance) '-1 * (1 / distance)
+			'vertex[ vi, 0 ] = (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 0, vert_num) / distance) + C3D_SCREEN_GRAPH_OFFSET_X
+			'vertex[ vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 1, vert_num) / distance)
+			
+			
+		
+		else
+			'end debug
+			
+			'distance = distance + 400
+			C3D_Ternary(distance=0, distance, 1, distance)
+			'vertex[ vi, 0 ] = (C3D_CAMERA_LENS * C3D_Actor_Vertex[actor, vert_num, 0 ] / distance) + C3D_SCREEN_GRAPH_OFFSET_X
+			'vertex[ vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * C3D_Actor_Vertex[actor, vert_num, 1 ] / distance)
+			vertex[ vi, 0 ] = (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 0, vert_num) / distance) + C3D_SCREEN_GRAPH_OFFSET_X
+			vertex[ vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 1, vert_num) / distance)
+			
+			actor_distance[ actor ] = min(distance, actor_distance[ actor ])
+			actor_min_screen_x[ actor ] = min(vertex[ vi, 0], actor_min_screen_x[ actor ])
+			actor_min_screen_y[ actor ] = min(vertex[ vi, 1], actor_min_screen_y[ actor ])
+			actor_max_screen_x[ actor ] = max(vertex[ vi, 0], actor_max_screen_x[ actor ])
+			actor_max_screen_y[ actor ] = max(vertex[ vi, 1], actor_max_screen_y[ actor ])
+		end if
 		vertex[ vi, 2 ] = 255
 		vertex[ vi, 3 ] = 255
 		vertex[ vi, 4 ] = 255
@@ -60,12 +99,28 @@ Sub C3D_DrawMeshFace(actor, face)
 		vertex[ vi, 6 ] = uv_x + (uv_w * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 0]) 'u
 		vertex[ vi, 7 ] = uv_y + (uv_h * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 1]) 'v
 		
+		'if key(k_b) then
+		'		print "Mat: ";MatrixValue(C3D_Actor_Matrix[actor, 0], 0, vert_num);", ";MatrixValue(C3D_Actor_Matrix[actor, 0], 1, vert_num)
+		'		'print "Point: ";cx;", ";cy;", ";dx;", ";dy;", ";(10-distance);", ";vertex[ vi, 0 ];", ";vertex[ vi, 1 ]
+		'		print ""
+		'end if
+		
+			'if key(k_j) Then
+			'	print "y = ";MatrixValue(C3D_Actor_Matrix[actor, 0], 1, vert_num)
+			'	print "distance = "; p_dist;" --> "; distance
+			'	print "ny = ";vertex[ vi, 1 ]
+			'	print ""
+			'end if
+		'vertex[ vi, 0 ] = vertex[ vi, 0 ] * 3
+		'vertex[ vi, 1 ] = vertex[ vi, 1 ] * 3
+		
 		If i >= 2 Then
 			index[index_count] = vi_zero
 			index[index_count+1] = vi-1
 			index[index_count+2] = vi
 			index_count = index_count + 3
 			'If Key(K_I) Then
+			'	Print "distance = ";distance
 			'	Print "I[";index_count-3;"] = ";vi_zero; "  vt = "; vertex[vi_zero, 0]; ", "; vertex[vi_zero, 1]
 			'	Print "I[";index_count-2;"] = ";vi-1   ; "  vt = "; vertex[vi-1, 0]; ", "; vertex[vi-1, 1]
 			'	Print "I[";index_count-1;"] = ";vi     ; "  vt = "; vertex[vi, 0]; ", "; vertex[vi, 1]
@@ -146,7 +201,15 @@ end sub
 
 C3D_Rendered_Faces_Count = 0
 
+dbg = 0
+
 Sub C3D_RenderScene()
+	
+	ArrayFill(actor_distance, 9999)
+	ArrayFill(actor_min_screen_x, 9999)
+	ArrayFill(actor_min_screen_y, 9999)
+	ArrayFill(actor_max_screen_x, -1)
+	ArrayFill(actor_max_screen_y, -1)
 	
 	ArrayFill(C3D_Actor_Collisions, 0)
 	ArrayFill(C3D_Stage_Geometry_Actor_Collisions, 0)
@@ -206,6 +269,13 @@ Sub C3D_RenderScene()
 		End If
 	Next
 	
+	If index_count < 3 Then
+		Canvas(C3D_CANVAS_RENDER)
+		setclearcolor(RGB(153,217,234))
+		ClearCanvas()
+		Return
+	End If
+	
 	Canvas(C3D_CANVAS_BACKBUFFER)
 	ClearCanvas()
 	
@@ -238,6 +308,7 @@ Sub C3D_RenderScene()
 	setclearcolor(RGB(153,217,234))
 	ClearCanvas()
 	'drawimage_blit_ex(C3D_TEXTURE_MAP, 0, 0, 128, 128, 0, 0, 512, 512)
+	'DrawImage_Blit_Ex(C3D_TEXTURE_MAP, 0, 0, 640, 480, 0, 0, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT)
 	DrawGeometry(C3D_TEXTURE_MAP, vertex_count, vertex, index_count, index)
 	
 End Sub

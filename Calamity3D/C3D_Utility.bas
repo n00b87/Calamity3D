@@ -101,6 +101,22 @@ Function Interpolate(min_a, max_a, mid_a, min_b, max_b)
 	Return ( (mid_a-min_a)/(max_a-min_a)) * (max_b-min_b) + min_b
 End Function
 
+
+sub point_on_line(x_origin, y_origin, x_point, y_point, distance, ByRef x_new, ByRef y_new)
+    ' Calculate the direction of the line
+    dx = x_point - x_origin
+    dy = y_point - y_origin
+    
+    ' Normalize the direction
+    line_length = sqrt(dx * dx + dy * dy)
+    dx = dx / line_length
+    dy = dy / line_length
+
+    ' Calculate the new point
+    x_new = x_origin + distance * dx
+    y_new = y_origin + distance * dy
+End Sub
+
 'x = 1
 'y = 2
 'z = 3

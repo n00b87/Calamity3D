@@ -113,7 +113,7 @@ Sub C3D_Init_CurrentWindow(w, h)
 End Sub
 
 C3D_Update_Timer = 0
-C3D_FPS_CAP = 60
+C3D_FPS_CAP = 30
 
 Sub C3D_Update()
 	t = timer

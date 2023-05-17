@@ -26,7 +26,7 @@ Function C3D_LoadImage(img_file$)
 	End If
 	
 	c_img = -1
-	For i = 0 To C3D_MAX_IMAGES-1
+	For i = 1 To C3D_MAX_IMAGES-1
 		If Not C3D_Image_Loaded[i] Then
 			c_img = i
 			Exit For
@@ -38,7 +38,7 @@ Function C3D_LoadImage(img_file$)
 	End If
 	
 	img_slot = -1
-	For i = 0 to 4095 'RCBasic supports a max of 4096 images
+	For i = 1 to 4095 'RCBasic supports a max of 4096 images
 		If Not ImageExists(i) Then
 			img_slot = i
 			Exit For
