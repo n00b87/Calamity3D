@@ -6,6 +6,7 @@ Include "Calamity3D/C3D_Sprite.bas"
 Include "Calamity3D/C3D_Camera.bas"
 Include "Calamity3D/C3D_Utility.bas"
 Include "Calamity3D/C3D_Window.bas"
+Include "Calamity3D/C3D_Background.bas"
 
 Dim vertex[ C3D_MAX_VERTICES, 8]
 Dim index[ (C3D_MAX_VERTICES-3) * 3 + 3 + 12 ] 'After 3 vertices, every new vertex adds 3 indices
@@ -213,6 +214,7 @@ Sub C3D_RenderScene()
 	
 	ArrayFill(C3D_Actor_Collisions, 0)
 	ArrayFill(C3D_Stage_Geometry_Actor_Collisions, 0)
+	ArrayFill(C3D_Actor_InViewRange, False)
 	
 	cam_x = C3D_Camera_Position[0]
 	cam_y = C3D_Camera_Position[1]
@@ -254,6 +256,11 @@ Sub C3D_RenderScene()
 			For i = 0 to C3D_ZSort_Faces_Count[z]-1
 				visible_face_index = C3D_ZSort_Faces[z, i]
 				actor = C3D_Visible_Faces[visible_face_index, 0]
+				
+				If Not C3D_Actor_InViewRange[actor] Then
+					Continue
+				End If
+				
 				face = C3D_Visible_Faces[visible_face_index, 1]
 				face_type = C3D_Visible_Faces_Type[visible_face_index]
 				
@@ -273,6 +280,7 @@ Sub C3D_RenderScene()
 		Canvas(C3D_CANVAS_RENDER)
 		setclearcolor(RGB(153,217,234))
 		ClearCanvas()
+		C3D_RenderBackground()
 		Return
 	End If
 	
@@ -305,8 +313,12 @@ Sub C3D_RenderScene()
 	CanvasClip(C3D_TEXTURE_MAP, 0, 0, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 1)
 	
 	Canvas(C3D_CANVAS_RENDER)
-	setclearcolor(RGB(153,217,234))
+	SetClearColor(0)
+	'setclearcolor(RGB(153,217,234))
 	ClearCanvas()
+	
+	C3D_RenderBackground()
+	
 	'drawimage_blit_ex(C3D_TEXTURE_MAP, 0, 0, 128, 128, 0, 0, 512, 512)
 	'DrawImage_Blit_Ex(C3D_TEXTURE_MAP, 0, 0, 640, 480, 0, 0, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT)
 	DrawGeometry(C3D_TEXTURE_MAP, vertex_count, vertex, index_count, index)

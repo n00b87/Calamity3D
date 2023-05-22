@@ -97,7 +97,7 @@ Sub C3D_Init_CurrentWindow(w, h)
 	CanvasClose(C3D_CANVAS_BACKBUFFER)
 	
 	CanvasOpen(6, w, h, 0, 0, w, h, 0) ' Render View
-	CanvasOpen(C3D_CANVAS_BACKBUFFER, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 0, 0, 256, 256, 0) ' Back Buffer
+	CanvasOpen(C3D_CANVAS_BACKBUFFER, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 0, 0, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 0) ' Back Buffer
 	SetCanvasVisible(C3D_CANVAS_BACKBUFFER, false)
 	setclearcolor(RGB(153,217,234))
 	

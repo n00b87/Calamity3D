@@ -38,6 +38,8 @@ Dim C3D_Mesh_Texture[C3D_MAX_MESH] 'references an index in C3D_Images
 Dim C3D_Mesh_Texture_Div_Parameters[C3D_MAX_MESH, 3] '0 - DIV, 1 - ROW, 2 - COL
 Dim C3D_Mesh_Texture_Div_Set[C3D_MAX_MESH]
 
+Dim C3D_Mesh_Radius[C3D_MAX_MESH] 'Used to determine if actor should be transformed
+
 Function C3D_GetVector(vector_size, vector_string$, delimeter$, ByRef vector_out)
 	Dim v[3]
 	v[0] = 0
@@ -204,6 +206,12 @@ Function C3D_LoadMesh(obj_file$)
 	C3D_Mesh_Origin[mesh_num, 0] = (min_x + max_x)/2
 	C3D_Mesh_Origin[mesh_num, 1] = (min_y + max_y)/2
 	C3D_Mesh_Origin[mesh_num, 2] = (min_z + max_z)/2
+	
+	r = abs(max_x - min_x)
+	r = Max(r, abs(max_y - min_y))
+	r = Max(r, abs(max_z - min_z))
+	
+	C3D_Mesh_Radius[mesh_num] = r+1
 	
 	tmp_matrix = C3D_CreateMatrix(2,2)
 	MatrixFromBuffer(tmp_matrix, C3D_Mesh_Vertex_Count[mesh_num], 4, C3D_Mesh_TMP_Vertex)
@@ -1221,6 +1229,7 @@ Function SetFaceZ(actor, face_num, ByRef z_avg)
 	
 End Function
 
+Dim C3D_Actor_InViewRange[C3D_MAX_ACTORS]
 
 Sub C3D_ComputeVisibleFaces()
 	C3D_Visible_Init = False
@@ -1250,7 +1259,7 @@ Sub C3D_ComputeVisibleFaces()
 		
 		C3D_Actor_Face_inSite_Count[actor] = 0
 		
-		If Not C3D_Actor_Active[actor] Then
+		If Not (C3D_Actor_Active[actor] And C3D_Actor_InViewRange[actor]) Then
 			Continue
 		End If
 		
@@ -1309,11 +1318,24 @@ End Sub
 'Dim C3D_Actor_Collision_Mesh[C3D_MAX_ACTORS]
 'Dim C3D_Actor_Collisions[C3D_MAX_ACTORS, C3D_MAX_ACTORS]
 
-Function C3D_ActorInViewRange(actor)
-	If actor < 0 Then
+'Dim C3D_Actor_InViewRange[C3D_MAX_ACTORS]
+
+Function C3D_UpdateActorInViewRange(actor)
+	If Not C3D_Actor_Active[actor] Then
 		Return False
 	End If
-	Return C3D_Actor_Active[actor]
+	
+	scale = C3D_Actor_Scale[actor]
+	
+	r = C3D_Mesh_Radius[ C3D_Actor_Source[actor] ]
+	If C3D_Distance3D(C3D_Camera_Position[0], C3D_Camera_Position[1], C3D_Camera_Position[2], C3D_ActorPositionX(actor), C3D_ActorPositionY(actor), C3D_ActorPositionZ(actor))-(r*scale) > C3D_MAX_Z_DEPTH+50 Then
+		'Print "Skip "; actor
+		C3D_Actor_InViewRange[actor] = False
+	Else
+		C3D_Actor_InViewRange[actor] = True
+	End If
+	
+	Return C3D_Actor_InViewRange[actor]
 End Function
 
 'Returns the closest actor at x,y position on screen
@@ -1324,7 +1346,7 @@ Function C3D_PickActor(x, y)
 	
 	For actor = 0 to C3D_MAX_ACTORS-1
 	
-		If Not C3D_ActorInViewRange(actor) Then
+		If Not C3D_Actor_InViewRange[actor] Then
 			Continue
 		End If
 	
@@ -1370,20 +1392,27 @@ Sub C3D_ComputeTransforms()
 	MultiplyMatrix(vx, vy, tmp_matrix1)
 	MultiplyMatrix(tmp_matrix1, vz, view_matrix)
 	
+	If key(k_c) Then
+		Print "Camera: ";C3D_CAMERA_CENTER_X;", ";C3D_CAMERA_CENTER_Y;", ";C3D_CAMERA_CENTER_Z
+	End If
+	
+	ArrayFill(C3D_Actor_InViewRange, 0)
+	
 	For actor = 0 to C3D_MAX_ACTORS-1
 		
 		'If the actor isn't part of the scene then check the next one
-		If Not (C3D_Actor_Active[actor] And C3D_ActorInViewRange(actor)) Then
+		If Not (C3D_Actor_Active[actor] And C3D_UpdateActorInViewRange(actor)) Then
 			Continue
 		End If
+		
 		
 		'Get the mesh for the actor
 		mesh = C3D_Actor_Source[actor]
 		
-		C3D_RefreshActorMatrix(actor)
-		
 		'Scale (Note: Camera does not have a scale. The scene can be scales by changing the left, right, top, and bottom values)
 		scale = C3D_Actor_Scale[actor]
+		
+		C3D_RefreshActorMatrix(actor)
 		
 		C3D_Actor_Position[actor, 0] = C3D_ActorPositionX(actor)
 		C3D_Actor_Position[actor, 1] = C3D_ActorPositionY(actor)

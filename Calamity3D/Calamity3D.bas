@@ -1,8 +1,8 @@
 Include Once
 
-C3D_CAMERA_LENS = 270 'Distance from 0, facing down negative z-axis
+C3D_CAMERA_LENS = 350 'Distance from 0, facing down negative z-axis
 
-C3D_MAX_Z_DEPTH = 5000
+C3D_MAX_Z_DEPTH = 6000
 
 C3D_LLOD_DEPTH = 1000
 C3D_MAX_LOD_DEPTH = 7000
@@ -68,6 +68,7 @@ Include "Calamity3D/C3D_Collision.bas"
 Include "Calamity3D/C3D_Scene.bas"
 Include "Calamity3D/C3D_Mesh.bas"
 Include "Calamity3D/C3D_Image.bas"
+Include "Calamity3D/C3D_Background.bas"
 Include "Calamity3D/C3D_Sprite.bas"
 Include "Calamity3D/C3D_Camera.bas"
 Include "Calamity3D/C3D_Window.bas"

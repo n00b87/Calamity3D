@@ -57,3 +57,53 @@ Function C3D_LoadImage(img_file$)
 	End If
 	
 End Function
+
+
+
+Function C3D_GetFreeImage(w, h)
+	
+	c_img = -1
+	For i = 1 To C3D_MAX_IMAGES-1
+		If Not C3D_Image_Loaded[i] Then
+			c_img = i
+			Exit For
+		End If
+	Next
+	
+	If c_img < 0 Then
+		Return -1
+	End If
+	
+	img_slot = -1
+	For i = 1 to 4095 'RCBasic supports a max of 4096 images
+		If Not ImageExists(i) Then
+			img_slot = i
+			Exit For
+		End If
+	Next
+	
+	If img_slot < 0 Then
+		Return -1
+	Else
+		C3D_Image[c_img] = img_slot
+		C3D_Image_Loaded[c_img] = True
+		C3D_Image_Width[c_img] = w 
+		C3D_Image_Height[c_img] = h
+		C3D_Image_Size[c_img, 0] = w
+		C3D_Image_Size[c_img, 1] = h
+		Return c_img
+	End If
+	
+End Function
+
+Function C3D_GetFreeImageSlot()
+	img_slot = -1
+	For i = 1 to 4095 'RCBasic supports a max of 4096 images
+		If Not ImageExists(i) Then
+			img_slot = i
+			Exit For
+		End If
+	Next
+	
+	Return img_slot
+End Function
