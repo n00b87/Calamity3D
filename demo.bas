@@ -72,7 +72,6 @@ test_level = C3D_CreateActor(C3D_ACTOR_TYPE_MESH, test_level_mesh)
 C3D_SetMeshTexture(test_level_mesh, test_level_map)
 
 test_level_mesh_cd = C3D_LoadMesh("Assets/test_hall5_cd.obj")
-
 C3D_AddCollisionMesh(test_level_mesh, test_level_mesh_cd)
 'C3D_SetBaseCollisionMesh(test_level_mesh)
 
@@ -85,8 +84,8 @@ C3D_SetMeshTexture(squid_mesh, squid_map)
 'C3D_SetActorScale(test_level, 9)
 'C3D_MoveActor(test_level, 0, 0, 430)
 'C3D_SetActorRotation(test_level, 0, 55, 0)
-
 C3D_SetCollisionMeshGeometry(test_level)
+
 'waitkey
 
 C3D_MoveActor(squid, 120, 100, -120)
@@ -129,7 +128,7 @@ Sub rotate(actor, x, y, z)
 	'Print ""
 	
 	Dim tx, ty, tz
-	rotateVertex(dx, dy, dz, cx, cy, cz, x, y, z, tx, ty, tz)
+	C3D_rotateVertex3D(dx, dy, dz, cx, cy, cz, x, y, z, tx, ty, tz)
 	Print "New Angle = ";tx;", ";ty;", ";tz
 	Print ""
 	
@@ -138,7 +137,7 @@ Sub rotate(actor, x, y, z)
 	Print ""
 	
 	Dim lx, ly, lz
-	lookAt(cx, cy, cz, tx, ty, tz, lx, ly, lz)
+	C3D_lookAt(cx, cy, cz, tx, ty, tz, lx, ly, lz)
 	Print "Look At = ";lx;", ";ly;", ";lz
 	Print ""
 	
@@ -151,7 +150,7 @@ Sub rotate(actor, x, y, z)
 	'C3D_RotatePoint(dx, dy, cx, cy, -z, dx, dy)
 	'C3D_MoveActor(actor, dx-actor_x, dy-actor_y, 0)
 	
-	C3D_MoveActor(actor, tx-actor_x, ty-actor_y, tz-actor_z)
+	C3D_MoveActorRelative(actor, tx-actor_x, ty-actor_y, tz-actor_z)
 	
 	'C3D_RotateActor(actor, 0, y, 0)
 	'C3D_RotateActor(actor, x, 0, 0)
@@ -188,13 +187,13 @@ Sub MoveFPSCameraActor(actor, x, y, z)
 	Dim n
 	
 	If y Then
-		C3D_RotatePoint(dx, dy, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Y, -1*crz, n, dy)
-		C3D_RotatePoint(dx, dy+y, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Y, crz, n, dy)
+		C3D_RotateVertex2D(dx, dy, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Y, -1*crz, n, dy)
+		C3D_RotateVertex2D(dx, dy+y, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Y, crz, n, dy)
 	End If
 	
 	If x Or z Then
-		C3D_RotatePoint(dz, dx, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Z, -1*cry, dz, dx)
-		C3D_RotatePoint(dz+z, dx+x, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Z, cry, dz, dx)
+		C3D_RotateVertex2D(dz, dx, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Z, -1*cry, dz, dx)
+		C3D_RotateVertex2D(dz+z, dx+x, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Z, cry, dz, dx)
 	End If
 	
 	delta_x = dx - C3D_Camera_Position[0]
@@ -217,7 +216,7 @@ C3D_SetCameraRotation(29, -128, 0)
 cam_speed = 40
 cam_rot_speed = 4
 
-gravity = 0 '24
+gravity = 24
 
 mx = MouseX()
 my = MouseY()
@@ -338,7 +337,7 @@ While Not Key(K_ESCAPE)
 		'Print ""
 		
 		Dim tx, ty, tz
-		rotateVertex(dx, dy, dz, cx, cy, cz, actor_x, actor_y, actor_z, tx, ty, tz)
+		C3D_rotateVertex3D(dx, dy, dz, cx, cy, cz, actor_x, actor_y, actor_z, tx, ty, tz)
 		Print "New Angle = ";tx;", ";ty;", ";tz
 		Print ""
 		

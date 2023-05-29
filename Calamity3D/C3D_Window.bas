@@ -115,6 +115,11 @@ End Sub
 C3D_Update_Timer = 0
 C3D_FPS_CAP = 30
 
+Sub C3D_SetFrameLimit(n)
+	C3D_FPS_CAP = n
+End Sub
+
+
 Sub C3D_Update()
 	t = timer
 	wait_time = (1000/C3D_FPS_CAP) - (t-C3D_Update_Timer)

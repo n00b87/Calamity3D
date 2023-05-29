@@ -2,7 +2,7 @@ Include Once
 
 C3D_CAMERA_LENS = 350 'Distance from 0, facing down negative z-axis
 
-C3D_MAX_Z_DEPTH = 6000
+C3D_MAX_Z_DEPTH = 8000
 
 C3D_LLOD_DEPTH = 1000
 C3D_MAX_LOD_DEPTH = 7000
@@ -33,6 +33,8 @@ C3D_TEXTURE_MAP = 0
 
 C3D_TEXTURE_MAP_WIDTH = 2048
 C3D_TEXTURE_MAP_HEIGHT = 2048
+
+C3D_CLEAR_COLOR = 0
 
 C3D_MAX_TEXTURE_MAP_DIV = 4
 Dim C3D_TEXTURE_MAP_DIV[C3D_MAX_TEXTURE_MAP_DIV, 2] 'How many rows and columns are in each division
@@ -69,7 +71,7 @@ Include "Calamity3D/C3D_Scene.bas"
 Include "Calamity3D/C3D_Mesh.bas"
 Include "Calamity3D/C3D_Image.bas"
 Include "Calamity3D/C3D_Background.bas"
-Include "Calamity3D/C3D_Sprite.bas"
+'Include "Calamity3D/C3D_Sprite.bas"  ' For now, C3D_ACTOR_TYPE_SPRITE can just be set manually to use 2D sprites
 Include "Calamity3D/C3D_Camera.bas"
 Include "Calamity3D/C3D_Window.bas"
 

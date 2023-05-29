@@ -165,10 +165,10 @@ End Sub
 
 Sub C3D_RenderBackground()
 	If C3D_Background_Enabled Then
-		If key(k_5) Then
-			Print "Camera: ";C3D_Camera_Rotation[0];", ";C3D_Camera_Rotation[1];", ";C3D_Camera_Rotation[2]
-			'Print ""
-		End If
+		'If key(k_5) Then
+		'	Print "Camera: ";C3D_Camera_Rotation[0];", ";C3D_Camera_Rotation[1];", ";C3D_Camera_Rotation[2]
+		'	'Print ""
+		'End If
 		
 		cx = 0
 		cy = 0
@@ -184,10 +184,10 @@ Sub C3D_RenderBackground()
 		C3D_Ternary( (bkg_y+256) >= 512, offset_y, 511 - (bkg_y + 256), 0)
 		C3D_Ternary( offset_y <= -255, offset_y, -255, offset_y)
 		
-		If key(k_5) Then
-			print "bkg_y = ";bkg_y
-			print ""
-		End If
+		'If key(k_5) Then
+		'	print "bkg_y = ";bkg_y
+		'	print ""
+		'End If
 		dw = 0
 		dh = 0 
 		

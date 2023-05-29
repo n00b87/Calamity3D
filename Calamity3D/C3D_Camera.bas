@@ -20,6 +20,12 @@ Dim C3D_Camera_Matrix_RX '= C3D_CreateMatrix(4,4)
 Dim C3D_Camera_Matrix_RY '= C3D_CreateMatrix(4,4)
 Dim C3D_Camera_Matrix_RZ '= C3D_CreateMatrix(4,4)
 
+Sub C3D_GetCameraPosition(ByRef x, ByRef y, ByRef z)
+	x = C3D_Camera_Position[0]
+	y = C3D_Camera_Position[1]
+	z = C3D_Camera_Position[2]
+End Sub
+
 Sub C3D_SetCameraPosition(x, y, z)
 	C3D_Camera_Position[0] = x
 	C3D_Camera_Position[1] = y
@@ -27,6 +33,13 @@ Sub C3D_SetCameraPosition(x, y, z)
 End Sub
 
 Sub C3D_MoveCamera(x, y, z)
+	C3D_Camera_Position[0] = C3D_Camera_Position[0] + x
+	C3D_Camera_Position[1] = C3D_Camera_Position[1] + y
+	C3D_Camera_Position[2] = C3D_Camera_Position[2] + z
+End Sub
+
+
+Sub C3D_MoveCameraRelative(x, y, z)
 	dx = C3D_Camera_Position[0]
 	dy = C3D_Camera_Position[1]
 	dz = C3D_Camera_Position[2]
@@ -38,18 +51,25 @@ Sub C3D_MoveCamera(x, y, z)
 	Dim n
 	
 	If y Then
-		C3D_RotatePoint(dx, dy, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Y, -1*crz, n, dy)
-		C3D_RotatePoint(dx, dy+y, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Y, crz, n, dy)
+		C3D_RotateVertex2D(dx, dy, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Y, -1*crz, n, dy)
+		C3D_RotateVertex2D(dx, dy+y, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Y, crz, n, dy)
 	End If
 	
 	If x Or z Then
-		C3D_RotatePoint(dz, dx, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Z, -1*cry, dz, dx)
-		C3D_RotatePoint(dz+z, dx+x, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Z, cry, dz, dx)
+		C3D_RotateVertex2D(dz, dx, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Z, -1*cry, dz, dx)
+		C3D_RotateVertex2D(dz+z, dx+x, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Z, cry, dz, dx)
 	End If
 	
 	C3D_Camera_Position[0] = dx
 	C3D_Camera_Position[1] = dy
 	C3D_Camera_Position[2] = dz
+End Sub
+
+
+Sub C3D_GetCameraRotation(ByRef x, ByRef y, ByRef z)
+	x = C3D_Camera_Rotation[0]
+	y = C3D_Camera_Rotation[1]
+	z = C3D_Camera_Rotation[2]
 End Sub
 
 Sub C3D_SetCameraRotation(x, y, z)
@@ -282,9 +302,9 @@ End Sub
 
 
 '// Compute the rotation angles required to look at an object from a camera position
-Sub lookAt(cameraPos_x, cameraPos_y, cameraPos_z, objectPos_x, objectPos_y, objectPos_z, ByRef x_angle, ByRef y_angle, ByRef z_angle)
+Sub C3D_LookAt(cameraPos_x, cameraPos_y, cameraPos_z, objectPos_x, objectPos_y, objectPos_z, ByRef x_angle, ByRef y_angle, ByRef z_angle)
   '// Compute the direction vector from the camera to the object
-  Print "LOOK DATA = "; cameraPos_x;", ";cameraPos_y;", ";cameraPos_z;", ";objectPos_x;", ";objectPos_y;", ";objectPos_z
+  'Print "LOOK DATA = "; cameraPos_x;", ";cameraPos_y;", ";cameraPos_z;", ";objectPos_x;", ";objectPos_y;", ";objectPos_z
   mdir = C3D_CreateMatrix(3,1)
   world_up = C3D_CreateMatrix(3,1)
   cam_up = C3D_CreateMatrix(3,1)
@@ -308,7 +328,7 @@ Sub lookAt(cameraPos_x, cameraPos_y, cameraPos_z, objectPos_x, objectPos_y, obje
   x_angle = Degrees(ASin(-1*MatrixValue(mdir,1,0)))
 
   '// Compute the angle to rotate around the y-axis
-  y_angle = Degrees(ATan2(-1* MatrixValue(mdir,0,0), -1 * MatrixValue(mdir,2,0)))
+  y_angle = -1 * Degrees(ATan2(-1* MatrixValue(mdir,0,0), -1 * MatrixValue(mdir,2,0)))
 
   '// Compute the angle to rotate around the z-axis
   'Vector3 world_up(0, 1, 0);

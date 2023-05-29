@@ -59,6 +59,22 @@ Function C3D_LoadImage(img_file$)
 End Function
 
 
+Sub C3D_DeleteImage(c_img)
+	If ImageExists(C3D_Image[c_img]) Then
+		DeleteImage(C3D_Image[c_img])
+	End If
+	C3D_Image_Loaded[c_img] = False
+End Sub
+
+
+Function C3D_ImageSlot(c_img)
+	If c_img < 0 Or c_img >= C3D_MAX_IMAGES Or (Not C3D_Image_Loaded[c_img]) Then
+		Return -1
+	Else
+		Return C3D_Image[c_img]
+	End If
+End Function
+
 
 Function C3D_GetFreeImage(w, h)
 	
@@ -106,4 +122,16 @@ Function C3D_GetFreeImageSlot()
 	Next
 	
 	Return img_slot
+End Function
+
+Function C3D_LinkImage(c_img, img_slot)
+	If Not (C3D_Image_Loaded[c_img] Or ImageExists(img_slot) ) Then
+		Return False
+	Else
+		GetImageSize(img_slot, C3D_Image_Width[c_img], C3D_Image_Height[c_img])
+		C3D_Image[c_img] = img_slot
+		C3D_Image_Loaded[c_img] = True
+		GetImageSize(img_slot, C3D_Image_Size[c_img, 0], C3D_Image_Size[c_img, 1])
+		Return True
+	End If
 End Function
