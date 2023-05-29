@@ -2,7 +2,15 @@ Include Once
 
 PI = 3.14159265359
 
-Sub C3D_RotatePoint(pt_x, pt_y, center_x, center_y, angleDeg, ByRef x, Byref y)
+sub Vec2(ByRef a, x, y)
+	a[0] = x : a[1] = y
+end sub
+
+sub Vec3(ByRef a, x, y, z)
+	a[0] = x : a[1] = y : a[2] = z
+end sub
+
+Sub C3D_RotateVertex2D(pt_x, pt_y, center_x, center_y, angleDeg, ByRef x, Byref y)
 
     angleRad = Radians(-angleDeg)
     cosAngle = Cos(angleRad)
@@ -14,7 +22,7 @@ Sub C3D_RotatePoint(pt_x, pt_y, center_x, center_y, angleDeg, ByRef x, Byref y)
     y = center_y + (dx*sinAngle+dy*cosAngle)
 End Sub
 
-Sub rotateVertex(vertex_x, vertex_y, vertex_z, center_x, center_y, center_z, angle_x, angle_y, angle_z, ByRef x_out, ByRef y_out, ByRef z_out)
+Sub C3D_RotateVertex3D(vertex_x, vertex_y, vertex_z, center_x, center_y, center_z, angle_x, angle_y, angle_z, ByRef x_out, ByRef y_out, ByRef z_out)
   '// Convert angles from degrees to radians
   theta_x = Radians(angle_x)
   theta_y = Radians(angle_y)
@@ -97,6 +105,25 @@ End Function
 
 const ATan2 = n_ATan2
 
+Function C3D_Interpolate(min_a, max_a, mid_a, min_b, max_b)
+	Return ( (mid_a-min_a)/(max_a-min_a)) * (max_b-min_b) + min_b
+End Function
+
+
+sub point_on_line(x_origin, y_origin, x_point, y_point, distance, ByRef x_new, ByRef y_new)
+    ' Calculate the direction of the line
+    dx = x_point - x_origin
+    dy = y_point - y_origin
+    
+    ' Normalize the direction
+    line_length = sqrt(dx * dx + dy * dy)
+    dx = dx / line_length
+    dy = dy / line_length
+
+    ' Calculate the new point
+    x_new = x_origin + distance * dx
+    y_new = y_origin + distance * dy
+End Sub
 
 'x = 1
 'y = 2

@@ -1,0 +1,1102 @@
+This document is divided into the following categories.
+You can CTRL-F and search for any of them to find what you are looking for.
+
+1. WINDOW
+2. RENDERING
+3. MESH
+4. ACTORS
+5. CAMERA
+6. IMAGE RESOURCE MANAGEMENT
+7. BACKGROUND
+8. COLLISION
+9. MATRIX
+10. UTILITY
+11. ENGINE INTERNAL CALCULATIONS
+
+
+
+
+Here is the simplest Calamity3D program to get you started:
+
+
+
+'Initialize a window for rendering
+C3D_Init("My 3D demo", 640, 480, 0, 1)
+
+'Load a Mesh ( the only format currently supported is *.obj files )
+mesh = C3D_LoadMesh("test.obj")
+
+'Load a texture
+texture = C3D_LoadImage("test_map.bmp")
+
+'Apply the texture to the mesh
+C3D_SetMeshTexture(mesh, texture)
+
+'Create an actor for the mesh ( this will add the mesh to the scene )
+test_actor = C3D_CreateActor(C3D_ACTOR_TYPE_MESH, mesh)
+
+
+'Render the scene
+C3D_Update()
+
+
+'keep the window open until a key is pressed
+WaitKey()
+
+
+
+
+IMPORTANT NOTES:
+
+1. Calamity3D uses canvases 6 and 7. You have all the other canvases available to you for whatever you need them for.
+
+2. Alot of Global Settings can be changed from the defaults by editing them in Calamity3D.bas
+
+3. Currently Solid color rendering is not supported even though you have the option to set it.  This line will get removed once its added.
+
+4. By Default only 16 textures can be used at a time in a rendered scene. This is actually not as bad as it sounds. You can have more textures than this but they can't be in a scene at the same time.
+	* NOTE: You can change this by Setting more rows and columns in a division but this will lower the resolution of the textures applied.
+
+5. The backgrounds generated from skybox textures are not actual skyboxes but psuedo skyboxes (ie. flat backgrounds).
+
+
+
+
+
+### WINDOW
+
+Sub C3D_Init(title$, w, h, fullscreen, vsync)
+'
+'	Opens a window and sets up the renderer
+'
+
+
+Sub C3D_Init_CurrentWindow(w, h)
+'
+'	Initializes a renderer in the current window
+'
+
+
+Sub C3D_SetFrameLimit(n)
+'
+'	Sets the target FPS for the renderer
+'
+
+
+Sub C3D_Update()
+'
+'	Renders the scene
+'
+
+
+Sub C3D_UpdateGlobalParameters()
+'
+'	Sets some global values during initialization
+'
+'	NOTE: You don't need to call this function directly
+'
+
+
+----------------------------------------------------------------------------------------
+
+
+
+### RENDERING
+
+Sub C3D_SetRenderType(render_type)
+'	
+'	Sets how C3D renders the scene
+'
+'	Parameters:
+'	render_type
+'
+'	Render Types:
+'		C3D_RENDER_TYPE_NONE - Blank
+'		C3D_RENDER_TYPE_WIREFRAME - Wireframe View
+'		C3D_RENDER_TYPE_SOLID - Renders solid colored polygons
+'		C3D_RENDER_TYPE_TEXTURED - Renders textured polygons (default)
+'
+
+
+Function C3D_GetRenderType()
+'
+'	Returns the current render type
+'
+
+
+Sub C3D_RenderScene()
+'
+'	Renders the scene
+'
+'	NOTE: Collision detection is also handled during this phase
+'
+
+
+Function C3D_SetTextureMapDivision(div, rows, cols)
+'
+'	Sets how many rows and columns are in a texture map division
+'
+'	Parameters:
+'	div - The division to set the dimensions on
+'	rows - number of rows
+'	cols - numbers of columns
+'
+'	Returns: TRUE if division was set and FALSE if not
+'
+'	NOTE: There default dimensions set by C3D_Init is 2x2 for each division. That means by default you can only have a total of 16 textures in a scene at 1 time.
+'
+
+
+Sub C3D_SetScreenOcclusionRange()
+'
+'	Sets the distance to the left/right and top/bottom of the camera where vertices are no longer visible
+'
+'	NOTE: This function is run when C3D_Init() is called.
+'
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+### MESH
+
+Function C3D_CreateMesh()
+'
+'	Allocates an empty mesh
+'
+'	Returns: ID of an empty mesh
+'
+
+
+Sub C3D_DeleteMesh(mesh)
+'
+'	Removes mesh allocation
+'
+
+
+Function C3D_LoadMesh(obj_file$)
+'
+'	Loads a mesh from a *.obj file
+'
+'	Parameters:
+'	obj_file$ - File to load the mesh from
+'
+'	Returns: ID of the loaded mesh
+'
+'	NOTE: Calamity3D currently only supports Triangles and Quads for faces. Any other shapes will be ignored by the renderer.
+'
+
+
+Function C3D_DefineMesh(m_vert_count, ByRef m_vert, m_index_count, ByRef m_ind, m_tex_count, ByRef m_tex)
+'
+'	Creates a mesh from geometry data
+'
+'	Parameters:
+'	m_vert_count - The number of vertices
+'	m_vert - An array of vertices
+'	m_index_count - The number of indices for the faces
+'	m_ind - An array of indices
+'	m_tex_count - Number of UV points for textures
+'	m_tex - UV texture data
+'
+'	Returns: ID of the created mesh
+'
+'	NOTES: This function currently only supports Triangle faces
+'
+
+
+Sub C3D_SetMeshTexture(mesh, img)
+'
+'	Sets the texture for a mesh
+'
+'	Parameters:
+'	mesh - mesh to set the texture on
+'	img - The C3D Image ID returned by C3D_LoadImage() or C3D_GetFreeImage()
+'
+
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+### ACTORS
+
+Function C3D_CreateActor(actor_type, actor_source)
+'
+'	Allocates a new actor
+'
+'	Parameters:
+'	actor_type - Type of object to create (mainly effects how the renderer treats it)
+'		TYPES:
+'		C3D_ACTOR_TYPE_MESH
+'		C3D_ACTOR_TYPE_SPRITE - A bilboard object
+'	actor_source - Mesh
+'
+'	Returns: C3D Actor ID
+'
+
+
+Sub C3D_RefreshActorMatrix(actor)
+'
+'	Reloads Actor Translation Matrix based off of current position
+'
+'	Parameters:
+'	actor - actor to reset matrix on
+'
+'	NOTE: This does not need to be called manually unless there is some specific calculations you need the translation matrix for
+'
+
+
+Sub C3D_SetActorVisible(actor, flag)
+'
+'	Sets the actor either visible or invisible
+'
+'	Parameters:
+'	actor - actor to set the flag on
+'	flag - TRUE/FALSE
+'
+
+
+Function C3D_GetActorMesh(actor)
+'
+'	Returns the C3D Mesh ID associated with the actor
+'
+'	Parameters:
+'	actor - actor to retrieve the Mesh ID of
+'
+'	Returns: Mesh associated with the actor
+'
+
+
+Sub C3D_DeleteActor(actor)
+'
+'	Clears the actor from the stage
+'
+'	Parameters:
+'	actor - actor to remove
+'
+
+
+Sub C3D_SetActorPosition(actor, x, y, z)
+'
+'	Sets the actors position in the stage
+'
+'	Parameters:
+'	actor - actor to position
+'	x, y, z - the position to place the actor
+'
+
+
+Sub C3D_GetActorPosition(actor, ByRef x, ByRef y, ByRef z)
+'
+'	Gets the actors position in the stage
+'
+'	Parameters:
+'	actor - actor to retrieve position of
+'	x, y, z - The returned vertex for the actor's position
+'
+'	NOTE: This will be the last position set before the current frame renders. Collision could possibly effect the actors location.
+'
+
+
+Function C3D_ActorPositionX(actor)
+Function C3D_ActorPositionY(actor)
+Function C3D_ActorPositionZ(actor)
+'
+'	These 3 functions will return the same values as C3D_GetActorPosition()
+'
+'	Parameters:
+'	actor - actor to retrieve position of
+'
+
+
+Sub C3D_MoveActor(actor, x, y, z)
+'
+'	Changes actors position by the given amount from its current position
+'
+'	Parameters:
+'	actor - actor to move
+'	x, y, z - Distance to move along each axis
+'
+
+
+Sub C3D_MoveActorRelative(actor, x, y, z)
+'
+'	Moves actor relative to its current orientation
+'
+'	Parameters:
+'	actor - actor to move
+'	x, y, z - assuming forward is in the negative z direction and x,y is relative to the actor's rotation, move the given amount along each axis
+'
+
+
+C3D_SetActorRotation(actor, x, y, z)
+'
+'	Sets the angle the actor is rotated
+'	
+'	parameters:
+'	actor - actor to set the angle of
+'	x, y, z - angle in degrees to rotate the actor to
+'
+
+
+Sub C3D_GetActorRotation(actor, ByRef x, ByRef y, ByRef z)
+'
+'	Gets the angle the actor is currently rotated to
+'
+'	Parameters:
+'	actor - actor to get the rotation from
+'	x, y, z - The Returned angle
+'
+
+
+Sub C3D_RotateActor(actor, x, y, z)
+'
+'	Changes the actors rotation by the given amount along each axis
+'
+'	Parameters:
+'	actor - actor to change the angle on
+'	x, y, z - the amount to change the actors current angle by along each axis
+'
+
+
+Sub C3D_SetActorScale(actor, s_value)
+'
+'	Sets the actors scaled size
+'
+'	Parameters:
+'	actors - actor to resize
+'	s_value - the factor to resize the actor by
+'
+
+
+Sub C3D_GetActorScale(actor, ByRef s_value)
+'
+'	Gets the scale of the actor
+'
+'	Parameters:
+'	actor - actor to retrieve the scale value of
+'	s_value - The returned scale
+'
+
+
+Sub C3D_ScaleActor(actor, s_value)
+'
+'	Multiplys actors current scale by the given value
+'
+'	Parameters:
+'	actor - actor to resize
+'	s_value - amount to scale the actor by
+'
+
+
+Function C3D_PickActor(x, y)
+'
+'	Returns the actor that is located at the given position on the screen
+'
+'	Parameters:
+'	x, y - The screen position to check
+'
+'	Returns: Actor ID if there is an actor at that location on the screen or -1 if there is no actor at that position
+'
+'	NOTE: This looks for the actor with the shortest distance from the camera. Actors with larger faces may end up getting selected depending on the camera angle.
+'
+
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+### CAMERA
+
+Sub C3D_GetCameraPosition(ByRef x, ByRef y, ByRef z)
+'
+'	Gets the current position of the camera
+'	
+'	Parameters:
+'	x, y, z - The returned camera position
+'
+
+
+Sub C3D_SetCameraPosition(x, y, z)
+'
+'	Sets the position of the camera
+'	
+'	Parameters:
+'	x, y, z - Position to set the camera to
+'
+
+
+Sub C3D_MoveCamera(x, y, z)
+'
+'	Changes the position of the camera in relation to its current position
+'	
+'	Parameters:
+'	x, y, z - The distance to move the camera relative to its current position
+'
+
+
+Sub C3D_MoveCameraRelative(x, y, z)
+'
+'	Changes the position of the camera in relation to its current position and orientation
+'	
+'	Parameters:
+'	x, y, z - The distance to move the camera relative to its current orientation
+'
+
+
+Sub C3D_GetCameraRotation(ByRef x, ByRef y, ByRef z)
+'
+'	Gets the current angle of the camera
+'	
+'	Parameters:
+'	x, y, z - The returned camera angle
+'
+
+
+Sub C3D_SetCameraRotation(x, y, z)
+'
+'	Sets the angle of rotation of the camera
+'	
+'	Parameters:
+'	x, y, z - Angle to set the camera to
+'
+
+
+Sub C3D_RotateCamera(x, y, z)
+'
+'	Changes the rotation of the camera in relation to its current angle
+'	
+'	Parameters:
+'	x, y, z - The distance to rotate the camera relative to its current angle
+'
+
+
+Sub C3D_StoreCameraState()
+'
+'	Stores the current position and orientation of the camera
+'
+
+
+Sub C3D_LoadCameraState()
+'
+'	Loads the last stored camera state
+'
+
+
+Sub C3D_GetForwardVector(position_x, position_y, position_z, rotation_x, rotation_y, rotation_z, distance, ByRef x_out, ByRef y_out, ByRef z_out)
+'
+'	A function to move a point a given distance in the direction it is facing
+'
+'	Parameters:
+'	position_x, position_y, position_z - Position of the origin point
+'	rotation_x, rotation_y, rotation_z - Angle of the line the origin point is moving on
+'	distance - Distance of the forward vector from the origin point on the line given
+'	x_out, y_out, z_out - The returned forward vector
+'
+
+
+Sub C3D_LookAt(cameraPos_x, cameraPos_y, cameraPos_z, objectPos_x, objectPos_y, objectPos_z, ByRef x_angle, ByRef y_angle, ByRef z_angle)
+'
+'	Compute the rotation angles required to look at an object from a camera position
+'
+'	Parameters:
+'	cameraPos_x, cameraPos_y, cameraPos_z - Position of the camera (It doesn't have to be the actual camera, just the viewing object
+'	objectPos_x, objectPos_y, objectPos_z - Position of the object being looked at
+'	x_angle, y_angle, z_angle - View angle the camera needs to rotate to view the object
+'
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+### IMAGE RESOURCE MANAGEMENT
+
+Function C3D_LoadImage(img_file$)
+'
+'	Loads an Image from a file and returns an image ID
+'
+'	Parameters:
+'	img_file$ - An image file to load
+'
+'	Note: The ID returned is not the image slot RCBasic is using. To access that image slot directly use C3D_ImageSlot()
+'
+
+
+Function C3D_ImageSlot(c3d_img)
+'
+'	Returns the Image Slot for the C3D image id or -1 is there is no image for this id
+'
+'	Parameters:
+'	c3d_img - Image ID returned by C3D_LoadImage() or C3D_GetFreeImage()
+'
+
+
+Sub C3D_DeleteImage(c3d_img)
+'
+'	Removes an image from memory
+'
+'	Parameters:
+'	c3d_img - Image ID returned by C3D_LoadImage() or C3D_GetFreeImage()
+'
+
+Function C3D_GetFreeImage(w, h)
+'
+'	Returns a C3D_Image Id linked to an unused image slot
+'
+'	Parameters:
+'	w - Desired Image Width
+'	h - Desired Image Height
+'
+'	Note: If you don't add an image to the linked image slot before you call this function again, it will assign the same image slot since its still unused
+'	You can manually set the image slot C3D uses by using C3D_GetFreeImageSlot() and assigning the image with C3D_LinkImage()
+'
+
+
+Function C3D_GetFreeImageSlot()
+'
+'	Returns an unused RCBasic image slot or -1 if they are all being used
+'
+
+
+Sub C3D_LinkImage(c3d_img, img_slot)
+'
+'	Manually sets the image slot a C3D Image ID uses
+'
+'	Parameters:
+'	c3d_img - Image ID returned by C3D_LoadImage() or C3D_GetFreeImage()
+'	img_slot - Image slot used by RCBasic's image commands
+'
+
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+### BACKGROUND
+
+Sub C3D_GenerateBackground(left, right, back, front, up, down)
+'
+'	Generates a Fake Skybox from the images given
+'
+'	Parameters:
+'	left - Image ID returned by C3D_LoadImage() or C3D_GetFreeImage()
+'	right - Image ID returned by C3D_LoadImage() or C3D_GetFreeImage()
+'	back - Image ID returned by C3D_LoadImage() or C3D_GetFreeImage()
+'	front - Image ID returned by C3D_LoadImage() or C3D_GetFreeImage()
+'	up - Image ID returned by C3D_LoadImage() or C3D_GetFreeImage()
+'	down - Image ID returned by C3D_LoadImage() or C3D_GetFreeImage()
+'
+'	Note: Images should be generated using C3D_LoadImage() or using C3D_FreeImage() if you want to generate the image in code
+'
+
+Sub C3D_ShowBackground(flag)
+'
+'	Set to TRUE to display background and FALSE to just render the clear color
+'
+'	Parameters:
+'	flag - Boolean flag to determine if background will be shown
+'
+
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+### COLLISION
+
+Sub C3D_AddCollisionMesh(base_mesh, collision_mesh)
+'
+'	Sets the collision geometry for a mesh based on another mesh
+'
+'	Parameters:
+'	base_mesh - The mesh to add the collision data to
+'	collision_mesh - The mesh containing the collision data
+'
+
+
+Sub C3D_ClearStageGeometry()
+'
+'	Clears all geometry in the current stage
+'
+
+
+Sub C3D_AddStageGeometry(type, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4)
+'
+'	Adds a stage collision shape
+'
+'	Parameters:
+'	type - Type of collision to check for
+'		TYPES:
+'		C3D_STAGE_GEOMETRY_TYPE_FLOOR
+'		C3D_STAGE_GEOMETRY_TYPE_WALL
+'	x1, y1, z1 - point 1 in shape
+'	x2, y2, z2 - point 2 in shape
+'	x3, y3, z3 - point 3 in shape
+'	x4, y4, z4 - point 4 in shape
+'
+'	NOTE: Only quads are supported for stage geometry
+'
+
+
+Sub C3D_SetCollisionMeshGeometry(actor)
+'
+'	Adds stage collision geometry from actor's collision mesh
+'
+'	Parameters:
+'	actor - Actor to get collision mesh from
+'
+'	NOTE: This function will make vertical planes walls and everything else floors.
+'
+
+
+Sub C3D_SetCollisionParameters(actor, CX1, CY1, CZ1, CX2, CY2, CZ2, R)
+'
+'	Sets Capsule parameters for actor
+'
+'	Parameters:
+'	actor - actor to add collision to
+'	CX1, CY1, CZ1 - Center of first end of capsule shape
+'	CX2, CY2, CZ2 - Center of second end of capsule shape
+'	Radius - Radius of capsule ends
+'
+'	NOTE: Currently, the capsule shape is the only shape supported for actor collisions
+'
+
+
+Sub C3D_SetCollisionType(actor, TYPE)
+'
+'	Sets the actor collision type
+'
+'	Parameters:
+'	actor - Actor to set collision type for
+'	TYPE - the collision type
+'		TYPES:
+'		C3D_COLLISION_TYPE_NONE - No collisions
+'		C3D_COLLISION_TYPE_STATIC - Actor doesn't move (good for something like a treasure chest)
+'		C3D_COLLISION_TYPE_DYNAMIC - Actor can move (checks for collisions with the stage)
+'
+
+
+Function C3D_CheckCollision(actor1, actor2)
+'
+'	Checks if 2 actors collided
+'
+'	Parameters:
+'	actor1 - first actor
+'	actor2 - second actor
+'
+'	Returns: TRUE or FALSE
+'
+
+
+Sub C3D_EnableCollision(actor)
+'
+'	Enables collision for an Actor
+'
+'	Parameters:
+'	actor - actor to enable collision checking on
+'
+
+Sub C3D_DisableCollision(actor)
+'
+'	Disables collision for an Actor
+'
+'	Parameters:
+'	actor - actor to disable collision checking on
+'
+
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+
+## MATRIX
+
+
+Function C3D_CreateMatrix(rows, cols)
+'
+'	Reserves a matrix
+'
+'	Parameters:
+'	rows, cols - dimensions of the matrix
+'
+'	Returns: The matrix number ( Can be used with any of RCBasic's matrix routines
+'
+
+
+Sub C3D_DeleteMatrix(m)
+'
+'	Clears matrix reservation
+'
+'	Parameters:
+'	m - Matrix to free up
+'
+'	NOTE: If all matrices are reserved for other calculations and not freed, the renderer will not be able to do any transform calculations
+'
+
+
+Function C3D_Dot(v1, v2)
+'
+'	Returns Dot Product of 2 vectors
+'
+'	Parameters:
+'	v1, v2 - Vectors
+'
+'	Returns: Dot Product
+'
+
+
+Sub C3D_CrossProduct(v1, v2, result)
+'
+'	Returns the Cross Product of 2 vectors
+'
+'	Parameters:
+'	v1, v2 - Vectors
+'	result - The returned cross product vector
+'
+
+
+Sub C3D_Normalize(m, m_out)
+'
+'	Normalize a Vector
+'
+'	Parameters:
+'	m - vector
+'	m_out - normalized vector
+'
+
+
+Sub C3D_SetRotationMatrix(mat, axis, angle)
+'
+'	Returns a rotation matrix for the given axis
+'
+'	Parameters:
+'	mat - The returned rotation matrix
+'	axis - The axis to set the rotation matrix for
+'		AXIS:
+'			C3D_AXIS_X
+'			C3D_AXIS_Y
+'			C3D_AXIS_Z
+'	angle - The angle around the axis to rotate
+'
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+### UTILITY
+
+Sub C3D_RotateVertex2D(pt_x, pt_y, center_x, center_y, angleDeg, ByRef x, Byref y)
+'
+'	Gets the new position of point(pt_x, pt_y) rotated around point(center_x, center_y)
+'
+'	Parameters:
+'	pt_x, pt_y - The point to be rotated around the center point
+'	center_x, center_y - The pivot point of the rotation
+'	angleDeg - The angle in degrees to rotate the point around the center
+'	x, y - Returned position of the point after rotation
+'
+
+
+Sub C3D_RotateVertex3D(pt_x, pt_y, pt_z, center_x, center_y, center_z, angle_x, angle_y, angle_z, ByRef x, ByRef y, ByRef z)
+'
+'	Gets the new position of point(pt_x, pt_y, pt_z) rotated around point(center_x, center_y, center_z)
+'
+'	Parameters:
+'	pt_x, pt_y, pt_z - The point to be rotated around the center point
+'	center_x, center_y, center_z - The pivot point of the rotation
+'	angle_x, angle_y, angle_z - The angle in degrees to rotate the point around the center along each axis
+'	x, y, z - Returned position of the point after rotation
+'
+
+
+Function C3D_LineAngle(x1, y1, x2, y2)
+'
+'	Returns the Angle in Degrees of a line
+'
+'	Parameters:
+'	x1, y1 - point 1 on the line
+'	x2, y2 - point 2 on the line
+'
+'	Returns: Angle in Degrees
+'
+
+
+Function C3D_Distance2D(x1, y1, x2, y2)
+'
+'	Returns the distance between 2 points in 2D space
+'
+'	Parameters:
+'	x1, y1 - point 1 on the line
+'	x2, y2 - point 2 on the line
+'
+'	Returns: Distance between point 1 and point 2
+'
+
+
+Function C3D_Distance3D(x1, y1, z1, x2, y2, z2)
+'
+'	Returns the distance between 2 points in 3D space
+'
+'	Parameters:
+'	x1, y1, z1 - point 1 on the line
+'	x2, y2, z2 - point 2 on the line
+'
+'	Returns: Distance between point 1 and point 2
+'
+
+
+Sub C3D_Ternary(condition, ByRef var, if_true, if_false)
+'
+'	Sets a variable based on a condition
+'
+'	Parameters:
+'	condition - A boolean condition to evaluate
+'	var - Variable to set the value of
+'	if_true - The value the variable will be set to if the condition is true
+'	if_false - The value the variable will be set to if the condition is false
+'
+
+
+Sub C3D_MovePointFromOrigin(angle, origin_x, origin_y, ByRef x, ByRef y)
+'
+'	Calculates distance between origin point and another point and returns a point that is that same distance from origin at the given angle
+'
+'	Parameters:
+'	angle - The angle from the origin to find the new point on
+'	origin_x, origin_y - Origin point
+'	x, y - The value passed to this argument is a point to get the distance from and the value returned to this point is calculated point from the origin
+'
+
+
+Function C3D_Interpolate(min_a, max_a, mid_a, min_b, max_b)
+'
+'	Interpolates the mid value in range b based on where the mid value is in range a
+'
+'	Parameters:
+'	min_a - Min Value in range A
+'	max_a - Max Value in range A
+'	mid_a - A value between min_a and max_a (it can be outside the range and mid_b would just reflect the same deviation in range B)
+'	min_b - Min Value in range B
+'	max_b - Max Value in range B
+'
+'	Returns: The mid value for range B
+'
+
+
+function C3D_IntersectRayPlane_M(ray_origin, ray_direction, planeNormal, planePoint, intersectionPoint)
+'
+'	Compute the intersection point between a ray and a plane
+'
+'	Parameters:
+'	ray_origin - Matrix[ 3 x 1 ] for origin vertex
+'	ray_direction - Matrix[ 3 x 1 ] for end point on the ray
+'	planeNormal - Matrix[ 3 x 1 ] for the plane normal vector
+'	planePoint - Matrix[ 3 x 1 ] for a vertex on the plane
+'	intersectionPoint - Returned Matrix[ 3 x 1 ] for the vertex where the line of the ray intersects the plane
+'
+'	Returns: TRUE or FALSE (TRUE if intersection point is in the ray
+'
+
+
+Function C3D_PointInQuad_M(point, quad)
+'
+'	Check if a point lies within a quad
+'
+'	Parameters:
+'	point - Matrix[ 3 x 1 ] for a point
+'	quad - Matrix[ 3 x 4 ]  for a quad
+'
+'	Returns: TRUE or FALSE
+'
+
+
+Function C3D_IntersectLineQuad_M(ln, quad)
+'
+'	Check if a line intersects a quad in 3D
+'
+'	Parameters:
+'	ln - Matrix[ 3 x 2 ] for a line
+'	quad - Matrix[ 3 x 4 ] for a quad
+'
+'	Returns: TRUE or FALSE
+'
+
+
+function C3D_DistanceToLine(A, B, C, x, y)
+'
+'	Calculate the distance between a point (x, y) and a line Ax + By + C = 0
+'
+'	Parameters:
+'	A, B, C - Equation of a line
+'	x, y - point to check the get the distance from
+'
+'	Returns: Distance between point(x,y) and line(A,B,C)
+'
+
+sub C3D_LineFromPoints(x1, y1, x2, y2, ByRef A, ByRef B, ByRef C)
+'
+'	Get the line equation Ax + By + C = 0 from two points (x1, y1) and (x2, y2)
+'
+'	Parameters:
+'	x1, y1 - point1 on the line
+'	x2, y2 - point2 on the line
+'	A, B, C - Equation of the line such that Ax + By + C = 0
+'
+
+
+function C3D_CircleLineIntersection(circle_x, circle_y, radius, x1, y1, x2, y2)
+'
+'	Check if a circle with center (circle_x, circle_y) and radius intersects a line defined by points (x1, y1) and (x2, y2)
+'
+'	Parameters:
+'	circle_x, circle_y - center of circle
+'	radius - radius of the circle
+'	x1, y1 - point 1 of the line
+'	x2, y2 - point 2 of the line
+'
+'	Returns: TRUE or FALSE
+'
+
+
+function C3D_AngleOfLine(x1, y1, x2, y2)
+'
+'	Get the angle of a line defined by points (x1, y1) and (x2, y2) in degrees
+'
+'	Parameters:
+'	x1, y1 - point 1 of the line
+'	x2, y2 - point 2 of the line
+'
+'	Returns: Returns the Angle of the line in degress
+'
+
+
+Function C3D_BetweenAngles(tgt_angle, angle1, angle2)
+'
+'	Checks if a target angle is between 2 other angles
+'
+'	Parameters:
+'	tgt_angle - The target angle
+'	angle1 - The first angle limit
+'	angle2 - The second angle limit
+'
+'	Returns: TRUE or FALSE
+'
+'	NOTE: This function accounts for angles less than 0 or greater than 360 which can happen at different stages in the rendering pipeline
+'
+
+
+sub C3D_ColDet_CircleLine(ByRef circle_old_x, ByRef circle_old_y, ByRef circle_new_x, ByRef circle_new_y, circle_radius, line_x1, line_y1, line_x2, line_y2, speed)
+'
+'	Adjust collision shape positions and get new position based on adjustment
+'
+'	Parameters:
+'	circle_old_x, circle_old_y - Current position of the collision shape
+'	circle_new_x, circle_new_y - Position the collision shape is moving to
+'	circle_radius - the radius of the collision sphere
+'	line_x1, line_y1, line_x2, line_y2 - The line to check for the collision with
+'	speed - The distance the circle is moving
+'
+'	NOTE: Collision detection is checked at render time and manual collision checking is not required
+'
+
+
+function C3D_PointInQuad(x, y, x1, y1, x2, y2, x3, y3, x4, y4)
+'
+'	Check if a point (x, y) is inside a quadrilateral defined by its four vertices (x1, y1), (x2, y2), (x3, y3), and (x4, y4).
+'
+'	Parameters:
+'	x, y - point position
+'	x1, y1 - First vertex in quad
+'	x2, y2 - Second vertex in quad
+'	x3, y3 - Third vertex in quad
+'	x4, y4 - Fourth vertex in quad
+'
+'	Returns TRUE or FALSE
+'
+
+
+function C3D_LinePlaneIntersection(ByRef line_point, ByRef line_direction, ByRef plane_point_1, ByRef plane_point_2, ByRef plane_point_3, ByRef intersection)
+'	 
+'	Calculates the intersection point of a line and a plane in 3D space.
+'
+'	Parameters:
+'	line_point (tuple or list): a point on the line (x, y, z)
+'	line_direction (tuple or list): the direction vector of the line (x, y, z)
+'	plane_point_1 (tuple or list): one point on the plane (x, y, z)
+'	plane_point_2 (tuple or list): another point on the plane (x, y, z)
+'	plane_point_3 (tuple or list): a third point on the plane (x, y, z)
+'
+'	Returns:
+'	intersection (tuple): the intersection point (x, y, z), or None if the line is parallel to the plane
+'
+
+
+
+
+----------------------------------------------------------------------------------------
+
+
+
+
+### ENGINE INTERNAL CALCULATIONS
+
+Function C3D_ClipTriangle(ByRef tri, ByRef uv, ByRef clipped_tri, ByRef clipped_uv)
+'
+'	Calculates what portion of a triangle is in front of the clipping plane (ie. the camera)
+'
+'	Paramters:
+'	tri - The vertices in the triangle to check ( should be an array of 9 numbers; ie. tri[0] = x1, tri[1] = y1, tri[3] = z1, etc.)
+'	uv - The texture coordinates corresponding to the points in tri ( should be an array of 6 numbers; ie. uv[0] = tri_0_u, uv[1] = tri_0_v, etc.)
+'	clipped_tri - The returned triangles if clipping was done (same format as tri)
+'	clipped_uv - The returned uvs corresponding to the returned clipped triangles (same format as uv)
+'
+'	Returns: the number of points returned ( if 0 then no clipping was done )
+'
+'	NOTE: The returned points are in index order
+'
+
+
+Sub C3D_ComputeTransforms()
+'
+'	Calculates the position of vertices in 3d space
+'
+'	NOTE: You won't ever need to call this function directly
+'
+
+
+Sub C3D_ComputeVisibleFaces()
+'
+'	Recalculates the visible faces drawn
+'
+'	NOTE: You won't ever need to call this function directly
+'
+
+
+Function C3D_UpdateActorInViewRange(actor)
+'
+'	Calculates if an actor is within the max z depth range of the camera
+'
+'	NOTE: You won't ever need to call this function directly
+'

@@ -1,8 +1,11 @@
 Include Once
 
-C3D_CAMERA_LENS = 270 'Distance from 0, facing down negative z-axis
+C3D_CAMERA_LENS = 350 'Distance from 0, facing down negative z-axis
 
-C3D_MAX_Z_DEPTH = 3500
+C3D_MAX_Z_DEPTH = 8000
+
+C3D_LLOD_DEPTH = 1000
+C3D_MAX_LOD_DEPTH = 7000
 
 C3D_GRAPH_LEFT = -20
 C3D_GRAPH_RIGHT = 20
@@ -26,6 +29,27 @@ C3D_SCREEN_GRAPH_OFFSET_Y = C3D_SCREEN_HEIGHT
 Dim C3D_ZX_Range[C3D_MAX_Z_DEPTH, 2]
 Dim C3D_ZY_Range[C3D_MAX_Z_DEPTH, 2]
 
+C3D_TEXTURE_MAP = 0
+
+C3D_TEXTURE_MAP_WIDTH = 2048
+C3D_TEXTURE_MAP_HEIGHT = 2048
+
+C3D_CLEAR_COLOR = 0
+
+C3D_MAX_TEXTURE_MAP_DIV = 4
+Dim C3D_TEXTURE_MAP_DIV[C3D_MAX_TEXTURE_MAP_DIV, 2] 'How many rows and columns are in each division
+Dim C3D_TEXTURE_MAP_DIV_POS_X[C3D_MAX_TEXTURE_MAP_DIV, 4, 4] 'x ; max of 4 rows and 4 cols
+Dim C3D_TEXTURE_MAP_DIV_POS_Y[C3D_MAX_TEXTURE_MAP_DIV, 4, 4] 'y ; max of 4 rows and 4 cols
+Dim C3D_TEXTURE_MAP_DIV_UV_X[C3D_MAX_TEXTURE_MAP_DIV, 4, 4] 'x ; max of 4 rows and 4 cols
+Dim C3D_TEXTURE_MAP_DIV_UV_Y[C3D_MAX_TEXTURE_MAP_DIV, 4, 4] 'y ; max of 4 rows and 4 cols
+Dim C3D_TEXTURE_MAP_DIV_UV_WIDTH[C3D_MAX_TEXTURE_MAP_DIV]
+Dim C3D_TEXTURE_MAP_DIV_UV_HEIGHT[C3D_MAX_TEXTURE_MAP_DIV]
+Dim C3D_TEXTURE_MAP_DIV_WIDTH[C3D_MAX_TEXTURE_MAP_DIV]
+Dim C3D_TEXTURE_MAP_DIV_HEIGHT[C3D_MAX_TEXTURE_MAP_DIV]
+Dim C3D_TEXTURE_MAP_DIV_IMAGES[C3D_MAX_TEXTURE_MAP_DIV, 4, 4] 'Max of 16 images per division
+
+ArrayFill(C3D_TEXTURE_MAP_DIV_IMAGES, -1)
+
 C3D_WINDOW = 0
 C3D_CANVAS_RENDER = 6
 C3D_CANVAS_BACKBUFFER = 7
@@ -46,7 +70,8 @@ Include "Calamity3D/C3D_Collision.bas"
 Include "Calamity3D/C3D_Scene.bas"
 Include "Calamity3D/C3D_Mesh.bas"
 Include "Calamity3D/C3D_Image.bas"
-Include "Calamity3D/C3D_Sprite.bas"
+Include "Calamity3D/C3D_Background.bas"
+'Include "Calamity3D/C3D_Sprite.bas"  ' For now, C3D_ACTOR_TYPE_SPRITE can just be set manually to use 2D sprites
 Include "Calamity3D/C3D_Camera.bas"
 Include "Calamity3D/C3D_Window.bas"
 

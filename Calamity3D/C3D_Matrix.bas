@@ -40,6 +40,10 @@ sub normalize(m, m_out)
 end sub
 
 
+Const C3D_Dot=dot
+Const C3D_CrossProduct=crossProduct
+Const C3D_Normalize=normalize
+
 C3D_AXIS_X = 0
 C3D_AXIS_Y = 1
 C3D_AXIS_Z = 2

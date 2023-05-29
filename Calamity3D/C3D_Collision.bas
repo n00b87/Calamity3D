@@ -19,7 +19,7 @@ Sub PrintMatrix(m)
 End Sub
 
 ' Compute the intersection point between a ray and a plane
-function intersectRayPlane(ray_origin, ray_direction, planeNormal, planePoint, intersectionPoint)
+function C3D_IntersectRayPlane_M(ray_origin, ray_direction, planeNormal, planePoint, intersectionPoint)
 	plane_minus_origin = C3D_CreateMatrix(2,2)
 	SubtractMatrix(planePoint, ray_origin, plane_minus_origin)
 	'print "dot(): "; dot(planeNormal, plane_minus_origin); "  /  "; dot(planeNormal, ray_direction)
@@ -38,7 +38,7 @@ function intersectRayPlane(ray_origin, ray_direction, planeNormal, planePoint, i
 End Function
 
 ' Check if a point lies within a quad
-Function pointInQuad(point, quad)
+Function C3D_PointInQuad_M(point, quad)
 	v1 = C3D_CreateMatrix(2,2)
 	v2 = C3D_CreateMatrix(2,2)
 	v3 = C3D_CreateMatrix(2,2)
@@ -103,7 +103,7 @@ Function pointInQuad(point, quad)
 End Function
 
 ' Check if a line intersects a quad in 3D
-Function intersectLineQuad(ln, quad)
+Function C3D_IntersectLineQuad_M(ln, quad)
 
 	p1 = C3D_CreateMatrix(2,2)
 	p2 = C3D_CreateMatrix(2,2)
@@ -134,8 +134,8 @@ Function intersectLineQuad(ln, quad)
 	
 	ret_val = false
 
-	If (intersectRayPlane(ln_origin, ln_direction, planeNormal, p1, intersectionPoint)) Then
-		If (pointInQuad(intersectionPoint, quad)) Then
+	If (C3D_IntersectRayPlane_M(ln_origin, ln_direction, planeNormal, p1, intersectionPoint)) Then
+		If (C3D_PointInQuad_M(intersectionPoint, quad)) Then
 			ret_val = true
 		End If
 	End If
@@ -158,19 +158,19 @@ Function intersectLineQuad(ln, quad)
 End Function
 
 
-function distance_to_line(A, B, C, x, y)
+function C3D_DistanceToLine(A, B, C, x, y)
 	'"""Calculate the distance between a point (x, y) and a line Ax + By + C = 0."""
 	return abs(A * x + B * y + C) / sqrt(A * A + B * B)
 end function
 
-sub line_from_points(x1, y1, x2, y2, ByRef A, ByRef B, ByRef C)
+sub C3D_LineFromPoints(x1, y1, x2, y2, ByRef A, ByRef B, ByRef C)
 	'"""Get the line equation Ax + By + C = 0 from two points (x1, y1) and (x2, y2)."""
 	A = y2 - y1
 	B = x1 - x2
 	C = x2 * y1 - x1 * y2
 end sub
 
-function circle_line_intersection(circle_x, circle_y, radius, x1, y1, x2, y2)
+function C3D_CircleLineIntersection(circle_x, circle_y, radius, x1, y1, x2, y2)
 	'"""Check if a circle with center (circle_x, circle_y) and radius intersects a line defined by points (x1, y1) and (x2, y2)."""
 	min_x = Min(x1, x2)
 	min_y = Min(y1, y2)
@@ -184,10 +184,10 @@ function circle_line_intersection(circle_x, circle_y, radius, x1, y1, x2, y2)
 	
 	'# Get the line equation from the two points
 	Dim A, B, C
-	line_from_points(x1, y1, x2, y2, A, B, C)
+	C3D_LineFromPoints(x1, y1, x2, y2, A, B, C)
 
 	'# Calculate the distance between the circle's center and the line
-	distance = distance_to_line(A, B, C, circle_x, circle_y)
+	distance = C3D_DistanceToLine(A, B, C, circle_x, circle_y)
 	
 	'# If the distance is less than or equal to the radius, the circle and line intersect
 	if distance <= radius then
@@ -199,7 +199,7 @@ end function
 
 
 
-function angle_of_line(x1, y1, x2, y2)
+function C3D_AngleOfLine(x1, y1, x2, y2)
 	'"""Get the angle of a line defined by points (x1, y1) and (x2, y2) in degrees."""
 	'# Calculate the difference in x and y coordinates
 	dx = x2 - x1
@@ -223,7 +223,7 @@ function angle_of_line(x1, y1, x2, y2)
 	return angle_deg
 end function
 
-function between_angles(tgt_angle, angle1, angle2)
+function C3D_BetweenAngles(tgt_angle, angle1, angle2)
 	tgt_angle = tgt_angle MOD 360
 	angle1 = angle1 MOD 360
 	angle2 = angle2 MOD 360
@@ -317,7 +317,7 @@ sub C3D_ColDet_CircleLine(ByRef circle_old_x, ByRef circle_old_y, ByRef circle_n
 	do
 		half_dist_x = (circle_new_x - circle_old_x)/2
 		half_dist_y = (circle_new_y - circle_old_y)/2
-		if not circle_line_intersection(circle_new_x, circle_new_y, circle_radius, line_x1, line_y1, line_x2, line_y2) then
+		if not C3D_CircleLineIntersection(circle_new_x, circle_new_y, circle_radius, line_x1, line_y1, line_x2, line_y2) then
 			exit do
 		elseif (abs(half_dist_x) <= 1) And (abs(half_dist_y) <= 1) then
 			circle_new_x = circle_old_x
@@ -337,11 +337,11 @@ sub C3D_ColDet_CircleLine(ByRef circle_old_x, ByRef circle_old_y, ByRef circle_n
 	
 	if flat then
 		if line_y1 = line_y2 then
-			if not circle_line_intersection(ncx, circle_new_y, circle_radius, line_x1, line_y1, line_x2, line_y2) then
+			if not C3D_CircleLineIntersection(ncx, circle_new_y, circle_radius, line_x1, line_y1, line_x2, line_y2) then
 				circle_new_x = ncx
 			end if
 		else
-			if not circle_line_intersection(circle_new_x, ncy, circle_radius, line_x1, line_y1, line_x2, line_y2) then
+			if not C3D_CircleLineIntersection(circle_new_x, ncy, circle_radius, line_x1, line_y1, line_x2, line_y2) then
 				circle_new_y = ncy
 			end if
 		end if
@@ -370,14 +370,14 @@ sub C3D_ColDet_CircleLine(ByRef circle_old_x, ByRef circle_old_y, ByRef circle_n
 		
 		'print "New Angles: ";angle_c; ", ";angle_out
 		
-		angle_c_gt_angle_out = between_angles(angle_c, angle_out + 90, angle_out + 270)
+		angle_c_gt_angle_out = C3D_BetweenAngles(angle_c, angle_out + 90, angle_out + 270)
 		
 		'print "<--CONDITION-->"; angle_c_gt_angle_out
 		
-		if angle_c_gt_angle_out And ( Not between_angles(angle_c, angle_out, angle_out + 90) ) then
+		if angle_c_gt_angle_out And ( Not C3D_BetweenAngles(angle_c, angle_out, angle_out + 90) ) then
 			'print "yolo"
 			angle_rad = angle_rad - radians(180)
-		elseif between_angles(angle_c+180, angle_out, angle_out + 90) then
+		elseif C3D_BetweenAngles(angle_c+180, angle_out, angle_out + 90) then
 			'print "balls"
 			angle_rad = angle_rad - radians(180)
 		end if
@@ -389,14 +389,14 @@ sub C3D_ColDet_CircleLine(ByRef circle_old_x, ByRef circle_old_y, ByRef circle_n
 		dy = speed * sin(angle_rad)
 		
 		if tl_br then
-			if not circle_line_intersection(circle_new_x+dx, circle_new_y+dy, circle_radius, line_x1, line_y1, line_x2, line_y2) then
+			if not C3D_CircleLineIntersection(circle_new_x+dx, circle_new_y+dy, circle_radius, line_x1, line_y1, line_x2, line_y2) then
 				circle_new_x = circle_new_x + dx
 				circle_new_y = circle_new_y + dy
 				'print "tl_br = "; dx; ", "; dy; "  ---> degrees = ";angle_out; ", ";angle_c
 				'print "cmp: "; between_angles(angle_c, angle_out, angle_out + 90)
 			end if
 		else
-			if not circle_line_intersection(circle_new_x+dx, circle_new_y+dy, circle_radius, line_x1, line_y1, line_x2, line_y2) then
+			if not C3D_CircleLineIntersection(circle_new_x+dx, circle_new_y+dy, circle_radius, line_x1, line_y1, line_x2, line_y2) then
 				circle_new_x = circle_new_x + dx
 				circle_new_y = circle_new_y + dy
 				'print "bl_tr = "; dx; ", "; dy; "  ---> degrees = ";angle_out; ", ";angle_c
@@ -409,7 +409,7 @@ sub C3D_ColDet_CircleLine(ByRef circle_old_x, ByRef circle_old_y, ByRef circle_n
 	circle_old_y = circle_new_y
 end sub
 
-function C3D_pointInQuad(x, y, x1, y1, x2, y2, x3, y3, x4, y4)
+function C3D_PointInQuad(x, y, x1, y1, x2, y2, x3, y3, x4, y4)
 	'"""
 	'Check if a point (x, y) is inside a quadrilateral defined by its four vertices (x1, y1), (x2, y2), (x3, y3), and (x4, y4).
 	'"""
@@ -430,7 +430,7 @@ function C3D_pointInQuad(x, y, x1, y1, x2, y2, x3, y3, x4, y4)
 end function
 
 
-function C3D_linePlaneIntersection(ByRef line_point, ByRef line_direction, ByRef plane_point_1, ByRef plane_point_2, ByRef plane_point_3, ByRef intersection)
+function C3D_LinePlaneIntersection(ByRef line_point, ByRef line_direction, ByRef plane_point_1, ByRef plane_point_2, ByRef plane_point_3, ByRef intersection)
 '    """
 '    Calculates the intersection point of a line and a plane in 3D space.
 '

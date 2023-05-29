@@ -3,22 +3,6 @@ Include Once
 Include "Calamity3D/C3D_Camera.bas"
 Include "Calamity3D/C3D_Image.bas"
 
-C3D_TEXTURE_MAP = 0
-C3D_Image_Loaded[0] = TRUE 'Render Texture Map
-
-C3D_TEXTURE_MAP_WIDTH = 2048
-C3D_TEXTURE_MAP_HEIGHT = 2048
-
-C3D_MAX_TEXTURE_MAP_DIV = 4
-Dim C3D_TEXTURE_MAP_DIV[C3D_MAX_TEXTURE_MAP_DIV, 2] 'How many rows and columns are in each division
-Dim C3D_TEXTURE_MAP_DIV_WIDTH[C3D_MAX_TEXTURE_MAP_DIV]
-Dim C3D_TEXTURE_MAP_DIV_HEIGHT[C3D_MAX_TEXTURE_MAP_DIV]
-Dim C3D_TEXTURE_MAP_DIV_IMAGES[C3D_MAX_TEXTURE_MAP_DIV, 16] 'Max of 16 images per division
-
-C3D_WINDOW = 0
-C3D_CANVAS_RENDER = 6
-C3D_CANVAS_BACKBUFFER = 7
-
 
 Function C3D_SetTextureMapDivision(div, rows, cols)
 	If div >= C3D_MAX_TEXTURE_MAP_DIV Then
@@ -33,8 +17,37 @@ Function C3D_SetTextureMapDivision(div, rows, cols)
 	
 	C3D_TEXTURE_MAP_DIV[div, 0] = rows
 	C3D_TEXTURE_MAP_DIV[div, 1] = cols
-	C3D_TEXTURE_MAP_DIV_WIDTH[div] = (C3D_TEXTURE_MAP_WIDTH / C3D_MAX_TEXTURE_MAP_DIV) / cols
-	C3D_TEXTURE_MAP_DIV_HEIGHT[div] = (C3D_TEXTURE_MAP_HEIGHT / C3D_MAX_TEXTURE_MAP_DIV) / rows
+	C3D_TEXTURE_MAP_DIV_WIDTH[div] = (C3D_TEXTURE_MAP_WIDTH / (C3D_MAX_TEXTURE_MAP_DIV/2)) / cols
+	C3D_TEXTURE_MAP_DIV_HEIGHT[div] = (C3D_TEXTURE_MAP_HEIGHT / (C3D_MAX_TEXTURE_MAP_DIV/2)) / rows
+	
+	'Print ""
+	'Print "C3D_SetTextureMapDivision Info:"
+	'Print "div = "; div; " rows = "; rows; " cols = "; cols
+	'Print "TM_DIV_WIDTH = "; C3D_TEXTURE_MAP_DIV_WIDTH[div]
+	'Print "TM_DIV_HEIGHT = "; C3D_TEXTURE_MAP_DIV_HEIGHT[div]
+	'Print ""
+	
+	C3D_TEXTURE_MAP_DIV_UV_WIDTH[div] = C3D_TEXTURE_MAP_DIV_WIDTH[div] / C3D_TEXTURE_MAP_WIDTH
+	C3D_TEXTURE_MAP_DIV_UV_HEIGHT[div] = C3D_TEXTURE_MAP_DIV_HEIGHT[div] / C3D_TEXTURE_MAP_HEIGHT
+	
+	'Print "TX UV SIZE = "; C3D_TEXTURE_MAP_DIV_UV_WIDTH[div]; " x "; C3D_TEXTURE_MAP_DIV_UV_HEIGHT[div]
+	'Print ""
+	
+	For r = 0 to rows - 1
+		For c = 0 to cols - 1
+			div_w = (C3D_TEXTURE_MAP_WIDTH / (C3D_MAX_TEXTURE_MAP_DIV/2))
+			div_h = (C3D_TEXTURE_MAP_HEIGHT / (C3D_MAX_TEXTURE_MAP_DIV/2))
+			C3D_TEXTURE_MAP_DIV_POS_X[div, r, c] = (div mod 2) * div_w + (c * C3D_TEXTURE_MAP_DIV_WIDTH[div])
+			C3D_TEXTURE_MAP_DIV_POS_Y[div, r, c] = int(div / 2) * div_h + (r * C3D_TEXTURE_MAP_DIV_HEIGHT[div])
+			
+			C3D_TEXTURE_MAP_DIV_UV_X[div, r, c] = C3D_TEXTURE_MAP_DIV_POS_X[div, r, c] / C3D_TEXTURE_MAP_WIDTH
+			C3D_TEXTURE_MAP_DIV_UV_Y[div, r, c] = C3D_TEXTURE_MAP_DIV_POS_Y[div, r, c] / C3D_TEXTURE_MAP_HEIGHT
+			
+			'Print "POS[";r;", ";c;"] = "; C3D_TEXTURE_MAP_DIV_POS_X[div, r, c];", ";C3D_TEXTURE_MAP_DIV_POS_Y[div, r, c]
+		Next
+	Next
+	
+	'Print "-----------------------------------"
 	
 	Return True
 End function
@@ -68,7 +81,27 @@ Sub C3D_Init(title$, w, h, fullscreen, vsync)
 	SetCanvasVisible(C3D_CANVAS_BACKBUFFER, false)
 	setclearcolor(RGB(153,217,234))
 	
-	C3D_SetTextureMapDivision(0, 1, 1) 'Default Terrain Division
+	C3D_SetTextureMapDivision(0, 2, 2) 'Default Terrain Division
+	C3D_SetTextureMapDivision(1, 2, 2)
+	C3D_SetTextureMapDivision(2, 2, 2)
+	C3D_SetTextureMapDivision(3, 2, 2)
+	
+	C3D_SCREEN_WIDTH = w
+	C3D_SCREEN_HEIGHT = h
+	C3D_UpdateGlobalParameters()
+	C3D_SetScreenOcclusionRange()
+End Sub
+
+Sub C3D_Init_CurrentWindow(w, h)
+	CanvasClose(C3D_CANVAS_RENDER)
+	CanvasClose(C3D_CANVAS_BACKBUFFER)
+	
+	CanvasOpen(6, w, h, 0, 0, w, h, 0) ' Render View
+	CanvasOpen(C3D_CANVAS_BACKBUFFER, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 0, 0, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 0) ' Back Buffer
+	SetCanvasVisible(C3D_CANVAS_BACKBUFFER, false)
+	setclearcolor(RGB(153,217,234))
+	
+	C3D_SetTextureMapDivision(0, 2, 2) 'Default Terrain Division
 	C3D_SetTextureMapDivision(1, 2, 2)
 	C3D_SetTextureMapDivision(2, 2, 2)
 	C3D_SetTextureMapDivision(3, 2, 2)
@@ -81,6 +114,11 @@ End Sub
 
 C3D_Update_Timer = 0
 C3D_FPS_CAP = 30
+
+Sub C3D_SetFrameLimit(n)
+	C3D_FPS_CAP = n
+End Sub
+
 
 Sub C3D_Update()
 	t = timer
