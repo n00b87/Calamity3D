@@ -37,6 +37,9 @@ test_actor = C3D_CreateActor(C3D_ACTOR_TYPE_MESH, mesh)
 
 
 'Render the scene
+C3D_RenderScene()
+
+'Displays the rendered scene in the window
 C3D_Update()
 
 
