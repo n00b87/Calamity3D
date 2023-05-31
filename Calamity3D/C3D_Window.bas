@@ -81,6 +81,9 @@ Sub C3D_Init(title$, w, h, fullscreen, vsync)
 	SetCanvasVisible(C3D_CANVAS_BACKBUFFER, false)
 	setclearcolor(RGB(153,217,234))
 	
+	'SetCanvasZ(6, 7)
+	'SetCanvasZ(7, 7)
+	
 	C3D_SetTextureMapDivision(0, 2, 2) 'Default Terrain Division
 	C3D_SetTextureMapDivision(1, 2, 2)
 	C3D_SetTextureMapDivision(2, 2, 2)

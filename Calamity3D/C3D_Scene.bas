@@ -572,6 +572,8 @@ Sub C3D_RenderScene()
 			C3D_inZone_Actors_Count = C3D_inZone_Actors_Count + 1
 		End If
 	Next
+		
+	ArrayFill(C3D_Actor_Stage_Collision_Count, 0)
 	
 	For i = 0 to C3D_inZone_Actors_Count - 1
 		setCollisionData(C3D_inZone_Actors[i])

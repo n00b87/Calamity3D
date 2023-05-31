@@ -1,0 +1,19 @@
+RCBASIC_STUDIO:1.0
+PROJECT_NAME:Calamity3D
+PROJECT_MAIN:main.bas
+AUTHOR:n00b <aka Rodney Cunningham>
+WEBSITE:rcbasic.freeforums.net
+DESCRIPTION:Calamity3D Graphics Engine for RCBasic
+SOURCE_REL:main.bas
+SOURCE_REL:Calamity3D\Calamity3D.bas
+SOURCE_REL:Calamity3D\C3D_Camera.bas
+SOURCE_REL:Calamity3D\C3D_Image.bas
+SOURCE_REL:Calamity3D\C3D_Mesh.bas
+SOURCE_REL:Calamity3D\C3D_Scene.bas
+SOURCE_REL:Calamity3D\C3D_Sprite.bas
+SOURCE_REL:Calamity3D\C3D_Utility.bas
+SOURCE_REL:Calamity3D\strings.bas
+SOURCE_REL:Calamity3D\C3D_Matrix.bas
+SOURCE_REL:Calamity3D\C3D_Window.bas
+SOURCE_REL:Calamity3D\C3D_Collision.bas
+SOURCE_REL:Calamity3D\C3D_Background.bas

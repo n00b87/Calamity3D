@@ -416,6 +416,10 @@ Dim C3D_Actor_Collisions[C3D_MAX_ACTORS, C3D_MAX_ACTORS]
 
 C3D_MAX_STAGE_GEOMETRY = 300
 
+C3D_MAX_ACTOR_STAGE_COLLISIONS = 20
+Dim C3D_Actor_Stage_Collision[C3D_MAX_ACTORS, C3D_MAX_ACTOR_STAGE_COLLISIONS]
+Dim C3D_Actor_Stage_Collision_Count[C3D_MAX_ACTORS]
+
 Dim C3D_Stage_Geometry[C3D_MAX_STAGE_GEOMETRY, 13]
 Dim C3D_Stage_Geometry_Actor_Collisions[C3D_MAX_STAGE_GEOMETRY, C3D_MAX_ACTORS]
 C3D_Stage_Geometry_Count = 0
@@ -534,6 +538,8 @@ Sub C3D_SetCollisionMeshGeometry(actor)
 	FillMatrixRows(tmp_trans_matrix, 1, 1, ay)
 	FillMatrixRows(tmp_trans_matrix, 2, 1, az)
 	
+	'print "debug info: (";ax;", ";ay;", ";az;")  scale = ";scale
+	
 	C3D_DeleteMatrix(tmp_trans_matrix)
 	
 	AddMatrix(tmp_trans_matrix, tmp_matrix1, tmp_matrix2)
@@ -595,6 +601,7 @@ Sub C3D_SetCollisionMeshGeometry(actor)
 		end if
 		
 		C3D_AddStageGeometry(type, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4)
+		'print "dbg: ";x1;","; y1;","; z1;","; x2;","; y2;","; z2;","; x3;","; y3;","; z3;","; x4;","; y4;","; z4
 	Next
 	
 	C3D_DeleteMatrix(tmp_matrix1)
@@ -778,6 +785,8 @@ Sub setCollisionData(actor)
 				'debug
 				if not (tx = actor_cx1 and tz = actor_cz1) then
 					C3D_Stage_Geometry_Actor_Collisions[i, actor] = True
+					C3D_Actor_Stage_Collision[actor, C3D_Actor_Stage_Collision_Count[actor]] = i
+					C3D_Actor_Stage_Collision_Count[actor] = C3D_Actor_Stage_Collision_Count[actor] + 1
 				end if
 			Case C3D_STAGE_GEOMETRY_TYPE_FLOOR
 				
@@ -839,11 +848,17 @@ Sub setCollisionData(actor)
 						actor_cy1 = intersect[1] + actor_cr + 1
 						actor_cy2 = actor_cy1 + (max_y-min_y)
 						C3D_Stage_Geometry_Actor_Collisions[i, actor] = True
+						
+						C3D_Actor_Stage_Collision[actor, C3D_Actor_Stage_Collision_Count[actor]] = i
+						C3D_Actor_Stage_Collision_Count[actor] = C3D_Actor_Stage_Collision_Count[actor] + 1
 					elseif max_y <= intersect[1] And distance_max <= actor_cr Or (ocy <= intersect[1] And max_y >= intersect[1]) then
 						diff_y = max_y - (intersect[1] + actor_cr)
 						actor_cy1 = actor_cy1 + diff_y
 						actor_cy2 = actor_cy2 + diff_y
 						C3D_Stage_Geometry_Actor_Collisions[i, actor] = True
+						
+						C3D_Actor_Stage_Collision[actor, C3D_Actor_Stage_Collision_Count[actor]] = i
+						C3D_Actor_Stage_Collision_Count[actor] = C3D_Actor_Stage_Collision_Count[actor] + 1
 					end if
 					
 				

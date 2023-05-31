@@ -1,6 +1,6 @@
 Include Once
 
-C3D_CAMERA_LENS = 350 'Distance from 0, facing down negative z-axis
+C3D_CAMERA_LENS = 500 '350 'Distance from 0, facing down negative z-axis
 
 C3D_MAX_Z_DEPTH = 8000
 
