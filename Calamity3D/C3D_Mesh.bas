@@ -5,11 +5,14 @@ Include "Calamity3D/strings.bas"
 Include "Calamity3D/C3D_Utility.bas"
 Include "Calamity3D/C3D_Matrix.bas"
 
-C3D_MAX_MESH = 100
+C3D_MAX_MESH = 200
 C3D_MAX_VERTICES = 7000
 C3D_MAX_FACES = 6000
 
+C3D_MAX_CUTS = C3D_MAX_MESH - 1
+
 Dim C3D_Mesh_Active[C3D_MAX_MESH]
+Dim C3D_Mesh_Parent[C3D_MAX_MESH]
 
 Dim C3D_Mesh_TMP_Vertex[C3D_MAX_VERTICES, 4] 'x, y, z, w = 1.0
 Dim C3D_Mesh_Vertex_Matrix[C3D_MAX_MESH] 'x, y, and z
@@ -35,6 +38,13 @@ Dim C3D_Mesh_Texture_Div_Parameters[C3D_MAX_MESH, 3] '0 - DIV, 1 - ROW, 2 - COL
 Dim C3D_Mesh_Texture_Div_Set[C3D_MAX_MESH]
 
 Dim C3D_Mesh_Radius[C3D_MAX_MESH] 'Used to determine if actor should be transformed
+Dim C3D_Mesh_MinX[C3D_MAX_MESH]
+Dim C3D_Mesh_MinZ[C3D_MAX_MESH]
+Dim C3D_Mesh_MaxX[C3D_MAX_MESH]
+Dim C3D_Mesh_MaxZ[C3D_MAX_MESH]
+
+Dim C3D_Mesh_Cuts[C3D_MAX_CUTS]
+Dim C3D_Mesh_Cut_Count
 
 Function C3D_GetVector(vector_size, vector_string$, delimeter$, ByRef vector_out)
 	Dim v[3]
@@ -83,6 +93,8 @@ Function C3D_CreateMesh()
 			C3D_Mesh_Face_Count[i] = 0
 			C3D_Mesh_Texture[i] = 0
 			C3D_Mesh_HasCollisionMesh[i] = False
+			C3D_Mesh_MinX[i] = 0
+			C3D_Mesh_MinZ[i] = 0
 			return i
 		End If
 	Next
@@ -95,6 +107,178 @@ Sub C3D_DeleteMesh(mesh)
 	End If
 End Sub
 
+Sub C3D_GetMeshCuts(ByRef buffer)
+	For i = 0 to C3D_Mesh_Cut_Count-1
+		buffer[i] = C3D_Mesh_Cuts[i]
+	Next
+End Sub
+
+
+Function C3D_CutMesh(mesh, cell_size)
+	
+	v_offset = 0
+	t_offset = 0
+	set_offset = false
+	'Print "MESH LOAD"
+	
+	C3D_Mesh_Cut_Count = 0
+	
+	width = Abs(C3D_Mesh_MaxX[mesh] - C3D_Mesh_MinX[mesh])
+	depth = Abs(C3D_Mesh_MaxZ[mesh] - C3D_Mesh_MinZ[mesh])
+	
+	rows = int(width/cell_size)+1
+	cols = int(depth/cell_size)+1
+	
+	Dim mesh_face_remap[C3D_MAX_FACES]
+	Dim mesh_vertex_remap[C3D_MAX_VERTICES]
+	
+	face_remap_count = 0
+	vertex_remap_count = 0
+	
+	ArrayFill(mesh_face_remap, false)
+	
+	Dim cell[rows*cols]
+	Dim vx[4], vy[4], vz[4], vi[4], tu[4], tv[4]
+	
+	ci = 0
+	
+	num_cuts = 0
+	
+	'print "W/h = ";width;", ";depth
+	
+	Dim min_x, min_y, min_z
+	Dim max_x, max_y, max_z
+	
+	For cx = C3D_Mesh_MinX[mesh] to (C3D_Mesh_MinX[mesh] + width) Step cell_size
+	For cz = C3D_Mesh_MinZ[mesh] to (C3D_Mesh_MinZ[mesh] + depth) Step cell_size
+		'Print "CXZ = "; cx;", ";cz
+		
+		cell[ci] = C3D_CreateMesh()
+		
+		ArrayFill(mesh_vertex_remap, -1)
+		
+		min_x = 9999999
+		min_y = 9999999
+		min_z = 9999999
+		
+		max_x = -9999999
+		max_y = -9999999
+		max_z = -9999999
+		
+		
+		For face = 0 to C3D_Mesh_Face_Count[mesh]-1
+			store_face = false
+		
+			For vertex = 0 to C3D_Mesh_Face_Vertex_Count[mesh, face]-1 'Vertex and TCoord count will be the same
+			
+				vx[vertex] = MatrixValue(C3D_Mesh_Vertex_Matrix[mesh], 0, C3D_Mesh_Face_Vertex[mesh, face, vertex])
+				vy[vertex] = MatrixValue(C3D_Mesh_Vertex_Matrix[mesh], 1, C3D_Mesh_Face_Vertex[mesh, face, vertex])
+				vz[vertex] = MatrixValue(C3D_Mesh_Vertex_Matrix[mesh], 2, C3D_Mesh_Face_Vertex[mesh, face, vertex])
+				vi[vertex] = C3D_Mesh_Face_Vertex[mesh, face, vertex]
+				
+				tu[vertex] = C3D_Mesh_TCoord[mesh, vi[vertex], 0]
+				tv[vertex] = C3D_Mesh_TCoord[mesh, vi[vertex], 1]
+				
+				If vx[vertex] < (cx + cell_size) And vz[vertex] < (cz + cell_size) Then
+					store_face = true
+				End If
+				
+			Next
+			
+			If store_face And (Not mesh_face_remap[face]) Then
+				mesh_face_remap[face] = true
+				
+				c_mesh = cell[ci]
+				mesh_face_num = C3D_Mesh_Face_Count[c_mesh]
+				C3D_Mesh_Face_Count[c_mesh] = C3D_Mesh_Face_Count[c_mesh] + 1
+				
+				mesh_vert_num = C3D_Mesh_Vertex_Count[c_mesh]
+				
+				
+				C3D_Mesh_Face_Vertex_Count[c_mesh, mesh_face_num] = C3D_Mesh_Face_Vertex_Count[mesh, face]
+				
+				
+				For i = 0 to C3D_Mesh_Face_Vertex_Count[mesh, face]-1
+					If mesh_vertex_remap[vi[i]] >= 0 Then
+						C3D_Mesh_Face_Vertex[c_mesh, mesh_face_num, i] = mesh_vertex_remap[vi[i]]
+						C3D_Mesh_Face_TCoord[c_mesh, mesh_face_num, i] = mesh_vertex_remap[vi[i]]
+					Else
+						mesh_vert_num = C3D_Mesh_Vertex_Count[c_mesh]
+						
+						C3D_Mesh_TMP_Vertex[mesh_vert_num, 0] = vx[i]
+						C3D_Mesh_TMP_Vertex[mesh_vert_num, 1] = vy[i]
+						C3D_Mesh_TMP_Vertex[mesh_vert_num, 2] = vz[i]
+						C3D_Mesh_TMP_Vertex[mesh_vert_num, 3] = 1.0
+						
+						
+						
+						min_x = Min(min_x, vx[i])
+						min_y = Min(min_y, vy[i])
+						min_z = Min(min_z, vz[i])
+						
+						max_x = Max(max_x, vx[i])
+						max_y = Max(max_y, vy[i])
+						max_z = Max(max_z, vz[i])
+						
+						C3D_Mesh_TCoord[c_mesh, mesh_vert_num, 0] = tu[i]
+						C3D_Mesh_TCoord[c_mesh, mesh_vert_num, 1] = tv[i]
+						
+						mesh_vertex_remap[vi[i]] = mesh_vert_num
+						
+						C3D_Mesh_Face_Vertex[c_mesh, mesh_face_num, i] = C3D_Mesh_Vertex_Count[c_mesh]
+						C3D_Mesh_Face_TCoord[c_mesh, mesh_face_num, i] = C3D_Mesh_TCoord_Count[c_mesh]
+						
+						C3D_Mesh_TCoord_Count[c_mesh] = C3D_Mesh_TCoord_Count[c_mesh] + 1
+						C3D_Mesh_Vertex_Count[c_mesh] = C3D_Mesh_Vertex_Count[c_mesh] + 1
+					End If
+				Next
+				
+			End If
+			
+		Next
+		
+		c_mesh = cell[ci]
+		
+		If C3D_Mesh_Vertex_Count[c_mesh] <= 0 Then
+			C3D_Mesh_Active[c_mesh] = False
+			'Print "false: "; ci
+		Else
+			'Print "Count = "; C3D_Mesh_Vertex_Count[c_mesh]
+			C3D_Mesh_Cuts[num_cuts] = cell[ci]
+			tmp_matrix = C3D_CreateMatrix(2,2)
+			MatrixFromBuffer(tmp_matrix, C3D_Mesh_Vertex_Count[c_mesh], 4, C3D_Mesh_TMP_Vertex)
+			TransposeMatrix(tmp_matrix, C3D_Mesh_Vertex_Matrix[c_mesh])
+			C3D_DeleteMatrix(tmp_matrix)
+			
+			C3D_Mesh_Parent[c_mesh] = mesh
+			
+			C3D_Mesh_Origin[c_mesh, 0] = (min_x + max_x)/2
+			C3D_Mesh_Origin[c_mesh, 1] = (min_y + max_y)/2
+			C3D_Mesh_Origin[c_mesh, 2] = (min_z + max_z)/2
+			
+			r = abs(max_x - min_x)
+			r = Max(r, abs(max_y - min_y))
+			r = Max(r, abs(max_z - min_z))
+			
+			C3D_Mesh_Radius[c_mesh] = r+1
+			
+			ci = ci + 1
+			num_cuts = num_cuts + 1
+		End If
+		
+		If num_cuts >= C3D_MAX_CUTS Then
+			C3D_Mesh_Cut_Count = num_cuts
+			return num_cuts
+		End If
+	
+	Next
+	Next
+	
+	C3D_Mesh_Cut_Count = num_cuts
+	Return num_cuts
+End Function
+
+
 
 Function C3D_LoadMesh(obj_file$)
 	f = FreeFile
@@ -104,6 +288,12 @@ Function C3D_LoadMesh(obj_file$)
 	End If
 	
 	mesh_num = C3D_CreateMesh()
+	
+	If mesh_num = -1 Then
+		FileClose(f)
+		Return -1
+	End If
+	
 	C3D_Mesh_HasCollisionMesh[mesh_num] = False
 	
 	Dim min_x, min_y, min_z, max_x, max_y, max_z, min_max_init
@@ -207,6 +397,11 @@ Function C3D_LoadMesh(obj_file$)
 	C3D_Mesh_Origin[mesh_num, 1] = (min_y + max_y)/2
 	C3D_Mesh_Origin[mesh_num, 2] = (min_z + max_z)/2
 	
+	C3D_Mesh_MinX[mesh_num] = min_x
+	C3D_Mesh_MinZ[mesh_num] = min_z
+	C3D_Mesh_MaxX[mesh_num] = max_x
+	C3D_Mesh_MaxZ[mesh_num] = max_z
+	
 	r = abs(max_x - min_x)
 	r = Max(r, abs(max_y - min_y))
 	r = Max(r, abs(max_z - min_z))
@@ -299,6 +494,11 @@ Function C3D_DefineMesh(m_vert_count, ByRef m_vert, m_index_count, ByRef m_ind, 
 	C3D_Mesh_Origin[mesh_num, 1] = (min_y + max_y)/2
 	C3D_Mesh_Origin[mesh_num, 2] = (min_z + max_z)/2
 	
+	C3D_Mesh_MinX[mesh_num] = min_x
+	C3D_Mesh_MinZ[mesh_num] = min_z
+	C3D_Mesh_MaxX[mesh_num] = max_x
+	C3D_Mesh_MaxZ[mesh_num] = max_z
+	
 	r = abs(max_x - min_x)
 	r = Max(r, abs(max_y - min_y))
 	r = Max(r, abs(max_z - min_z))
@@ -359,7 +559,7 @@ C3D_ACTOR_MATRIX_RZ = 4
 C3D_ACTOR_MATRIX_COLLIDE_ORIGIN = 5
 C3D_ACTOR_MATRIX_COLLIDE_DIRECTION = 6
 
-C3D_MAX_SCENE_FACES = 3000
+C3D_MAX_SCENE_FACES = 4000
 Dim C3D_Visible_Faces[C3D_MAX_SCENE_FACES, 2] '0 is actor, 1 is face
 Dim C3D_ZSort_Faces[C3D_MAX_Z_DEPTH, C3D_MAX_SCENE_FACES] 'reference item in C3D_Visible_Faces, 500 is max Z depth (I will probably change it later)
 Dim C3D_ZSort_Faces_Distance[C3D_MAX_Z_DEPTH, C3D_MAX_SCENE_FACES]
@@ -1322,6 +1522,8 @@ Function C3D_UpdateActorInViewRange(actor)
 		C3D_Actor_InViewRange[actor] = False
 	Else
 		C3D_Actor_InViewRange[actor] = True
+		if key(k_i) then : print "Actor in Range: "; actor
+		end if
 	End If
 	
 	Return C3D_Actor_InViewRange[actor]

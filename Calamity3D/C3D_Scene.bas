@@ -619,7 +619,7 @@ Sub C3D_RenderScene()
 	if C3D_Render_Type = C3D_RENDER_TYPE_WIREFRAME then
 		if c3d_index_count > 0 then
 			Canvas(C3D_CANVAS_RENDER)
-			SetClearColor(0)
+			'SetClearColor(0)
 			ClearCanvas
 			SetColor(RGB(255,255,255))
 			for a = 0 to c3d_index_count-1 step 3
@@ -632,19 +632,21 @@ Sub C3D_RenderScene()
 		return
 	end if
 	
+	
 	If c3d_index_count < 3 Then
 		Canvas(C3D_CANVAS_RENDER)
-		setclearcolor(RGB(153,217,234))
+		SetClearColor(C3D_CLEAR_COLOR)
 		ClearCanvas()
 		C3D_RenderBackground()
 		Return
 	End If
 	
 	Canvas(C3D_CANVAS_BACKBUFFER)
+	SetClearColor(0)
 	ClearCanvas()
 	
 	Dim w, h
-	
+	dc = 0
 	For div = 0 to C3D_MAX_TEXTURE_MAP_DIV-1
 		w = C3D_TEXTURE_MAP_DIV_WIDTH[div]
 		h = C3D_TEXTURE_MAP_DIV_HEIGHT[div]
@@ -666,17 +668,29 @@ Sub C3D_RenderScene()
 		DeleteImage(C3D_TEXTURE_MAP)
 	End If
 	
+	
+	
+	
+	
+	
 	CanvasClip(C3D_TEXTURE_MAP, 0, 0, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 1)
+	
+	SetImageBlendMode(C3D_TEXTURE_MAP, BLENDMODE_BLEND)
+	SetImageColorMod(C3D_TEXTURE_MAP, 0)
 	
 	Canvas(C3D_CANVAS_RENDER)
 	SetClearColor(C3D_CLEAR_COLOR)
-	'setclearcolor(RGB(153,217,234))
+	'setclearcolor(rgb(0,255,0))
 	ClearCanvas()
 	
 	C3D_RenderBackground()
 	
+
 	'drawimage_blit_ex(C3D_TEXTURE_MAP, 0, 0, 128, 128, 0, 0, 512, 512)
-	'DrawImage_Blit_Ex(C3D_TEXTURE_MAP, 0, 0, 640, 480, 0, 0, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT)
+	'SetColor(RGB(255,0,0))
+	'RectFill(0,0, 640,480)
+	'DrawImage_Blit_Ex(C3D_TEXTURE_MAP, 1, 1, 640, 480, 0, 0, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT)
 	DrawGeometry(C3D_TEXTURE_MAP, c3d_vi, c3d_vertex, c3d_index_count, c3d_index)
+	
 	
 End Sub

@@ -77,9 +77,9 @@ End Sub
 Sub C3D_Init(title$, w, h, fullscreen, vsync)
 	WindowOpen(0, title$, WINDOWPOS_CENTERED, WINDOWPOS_CENTERED, w, h, WindowMode(1, fullscreen, 0, 0, 0) , vsync)
 	CanvasOpen(6, w, h, 0, 0, w, h, 0) ' Render View
-	CanvasOpen(C3D_CANVAS_BACKBUFFER, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 0, 0, 256, 256, 0) ' Back Buffer
+	CanvasOpen(C3D_CANVAS_BACKBUFFER, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 0, 0, 256, 256, 1) ' Back Buffer
 	SetCanvasVisible(C3D_CANVAS_BACKBUFFER, false)
-	setclearcolor(RGB(153,217,234))
+	'setclearcolor(RGB(153,217,234))
 	
 	'SetCanvasZ(6, 7)
 	'SetCanvasZ(7, 7)
@@ -102,7 +102,7 @@ Sub C3D_Init_CurrentWindow(w, h)
 	CanvasOpen(6, w, h, 0, 0, w, h, 0) ' Render View
 	CanvasOpen(C3D_CANVAS_BACKBUFFER, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 0, 0, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 0) ' Back Buffer
 	SetCanvasVisible(C3D_CANVAS_BACKBUFFER, false)
-	setclearcolor(RGB(153,217,234))
+	'setclearcolor(RGB(153,217,234))
 	
 	C3D_SetTextureMapDivision(0, 2, 2) 'Default Terrain Division
 	C3D_SetTextureMapDivision(1, 2, 2)
