@@ -220,6 +220,39 @@ Sub C3D_SetMeshTexture(mesh, img)
 '
 
 
+Function C3D_CutMesh(mesh, cell_size)
+'
+'	Creates multiple meshes by divinding a mesh into blocks of cell_size
+'
+'	Parameters:
+'	mesh - The mesh to cut
+'	cell_size - The size of each block to cut from the mesh ( a square of cell_size x cell_size )
+'
+'	Returns: Number of Cuts
+'
+'	NOTES: C3D_GetMeshCuts() must be used before next call to this function
+'	
+'	NOTES: This can help with optimizing a scene that has a mesh that exceeds the distance of the depth buffer
+'
+
+
+Function C3D_GetMeshCuts(ByRef buffer)
+'
+'	Stores all the meshes created from last call to C3D_CutMesh()
+'
+'	Parameters:
+'	buffer - An array that must be of the size returned by C3D_CutMesh()
+'
+'
+
+
+Sub C3D_ScaleMesh(mesh)
+'
+'	Scales a mesh
+'
+'	Parameters:
+'	mesh - mesh to scale
+'
 
 
 ----------------------------------------------------------------------------------------

@@ -58,10 +58,10 @@ End Sub
 'C3D_SetRenderType(C3D_RENDER_TYPE_WIREFRAME)
 
 
-'corridor1_mesh = C3D_LoadMesh("Assets/terrain2.obj")
-'corridor1_texture = C3D_LoadImage("Assets/terrain1.png")
-corridor1_mesh = C3D_LoadMesh("Assets/large_level.obj")
-corridor1_texture = C3D_LoadImage("Assets/plane1.bmp")
+corridor1_mesh = C3D_LoadMesh("Assets/terrain2.obj")
+corridor1_texture = C3D_LoadImage("Assets/terrain1.png")
+'corridor1_mesh = C3D_LoadMesh("Assets/large_level.obj")
+'corridor1_texture = C3D_LoadImage("Assets/plane1.bmp")
 C3D_SetMeshTexture(corridor1_mesh, corridor1_texture)
 
 c = C3D_CutMesh(corridor1_mesh, 4000)
@@ -77,9 +77,10 @@ Next
 'C3D_SetActorScale(corridor1, 2)
 
 
-house_mesh = C3D_LoadMesh("Assets/house4.obj")
-house_texture = C3D_LoadImage("Assets/house_tex.png")
+house_mesh = C3D_LoadMesh("Assets/house.obj")
+house_texture = C3D_LoadImage("Assets/house.png")
 C3D_SetMeshTexture(house_mesh, house_texture)
+C3D_ScaleMesh(house_mesh, 3)
 house1 = C3D_CreateActor(C3D_ACTOR_TYPE_MESH, house_mesh)
 'C3D_SetActorScale(corridor1, 4)
 C3D_MoveActor(house1, 0, 10, 0)

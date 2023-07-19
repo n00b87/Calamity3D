@@ -5,9 +5,9 @@ Include "Calamity3D/strings.bas"
 Include "Calamity3D/C3D_Utility.bas"
 Include "Calamity3D/C3D_Matrix.bas"
 
-C3D_MAX_MESH = 200
-C3D_MAX_VERTICES = 7000
-C3D_MAX_FACES = 6000
+C3D_MAX_MESH = 100
+C3D_MAX_VERTICES = 5000
+C3D_MAX_FACES = 4000
 
 C3D_MAX_CUTS = C3D_MAX_MESH - 1
 
@@ -105,6 +105,10 @@ Sub C3D_DeleteMesh(mesh)
 	If mesh >= 0 And mesh < C3D_MAX_MESH Then
 		C3D_Mesh_Active[mesh] = False
 	End If
+End Sub
+
+Sub C3D_ScaleMesh(mesh, scale)
+	ScalarMatrix(C3D_Mesh_Vertex_Matrix[mesh], C3D_Mesh_Vertex_Matrix[mesh], scale)
 End Sub
 
 Sub C3D_GetMeshCuts(ByRef buffer)
