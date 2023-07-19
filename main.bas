@@ -58,36 +58,40 @@ End Sub
 'C3D_SetRenderType(C3D_RENDER_TYPE_WIREFRAME)
 
 
-corridor1_mesh = C3D_LoadMesh("Assets/terrain2.obj")
-corridor1_texture = C3D_LoadImage("Assets/terrain1.png")
+'corridor1_mesh = C3D_LoadMesh("Assets/terrain2.obj")
+'corridor1_texture = C3D_LoadImage("Assets/terrain1.png")
 'corridor1_mesh = C3D_LoadMesh("Assets/large_level.obj")
 'corridor1_texture = C3D_LoadImage("Assets/plane1.bmp")
+
+corridor1_mesh = C3D_LoadMesh("Assets/plane_t.obj")
+corridor1_texture = C3D_LoadImage("Assets/grid.png")
+
 C3D_SetMeshTexture(corridor1_mesh, corridor1_texture)
 
-c = C3D_CutMesh(corridor1_mesh, 4000)
-Print "Cuts = "; c
+'c = C3D_CutMesh(corridor1_mesh, 4000)
+'Print "Cuts = "; c
 
-For i = 0 to C3D_Mesh_Cut_Count-1
+'For i = 0 to C3D_Mesh_Cut_Count-1
 	'Print "Test: "; dbg_cuts[i]
-	C3D_SetMeshTexture(C3D_Mesh_Cuts[i], corridor1_texture)
-	C3D_CreateActor(C3D_ACTOR_TYPE_MESH, C3D_Mesh_Cuts[i])
-Next
+'	C3D_SetMeshTexture(C3D_Mesh_Cuts[i], corridor1_texture)
+'	C3D_CreateActor(C3D_ACTOR_TYPE_MESH, C3D_Mesh_Cuts[i])
+'Next
 
-'corridor1 = C3D_CreateActor(C3D_ACTOR_TYPE_MESH, corridor1_mesh)
+corridor1 = C3D_CreateActor(C3D_ACTOR_TYPE_MESH, corridor1_mesh)
 'C3D_SetActorScale(corridor1, 2)
 
 
 house_mesh = C3D_LoadMesh("Assets/house.obj")
 house_texture = C3D_LoadImage("Assets/house.png")
 C3D_SetMeshTexture(house_mesh, house_texture)
-C3D_ScaleMesh(house_mesh, 3)
-house1 = C3D_CreateActor(C3D_ACTOR_TYPE_MESH, house_mesh)
+C3D_ScaleMesh(house_mesh, 1)
+'house1 = C3D_CreateActor(C3D_ACTOR_TYPE_MESH, house_mesh)
 'C3D_SetActorScale(corridor1, 4)
-C3D_MoveActor(house1, 0, 10, 0)
+'C3D_MoveActor(house1, 0, 10, 0)
 
-mg_texture = C3D_LoadImage("Assets/mg-sheet.png")
-mg = C3D_CreateActor(C3D_ACTOR_TYPE_SPRITE, mg_texture)
-C3D_SetActorPosition(mg, 0, 80, 0)
+'mg_texture = C3D_LoadImage("Assets/mg-sheet.png")
+'mg = C3D_CreateActor(C3D_ACTOR_TYPE_SPRITE, mg_texture)
+'C3D_SetActorPosition(mg, 0, 80, 0)
 
 'corridor1_mesh_cd = C3D_LoadMesh("Assets/corridor1_cd.obj")
 'C3D_AddCollisionMesh(corridor1_mesh, corridor1_mesh_cd)
@@ -316,13 +320,29 @@ Update()
 MoveFPSCameraActor(cam_obj, -1, 0, 0)
 C3D_SetCameraRotation(24, 3, 0)
 
+LoadFont(0, "FreeMono.ttf", 12)
+
 While Not Key(K_ESCAPE)
 	'Viewport_Control()
 	FPSControl()
 	DrawUI()
 	
+	Canvas(0)
+	SetColor(RGB(255,255,255))
+	RectFill(5, 5, 300, 300)
+	SetColor(RGB(0, 0, 0))
+	DrawText("INFO: ", 10, 10)
+	
 	If key(k_m) Then
 		Print FPS()
+	End If
+	
+	If key(k_z) then
+		Select Case C3D_GetRenderType()
+		Case C3D_RENDER_TYPE_WIREFRAME : C3D_SetRenderType(C3D_RENDER_TYPE_TEXTURED)
+		Default : C3D_SetRenderType(C3D_RENDER_TYPE_WIREFRAME)
+		End Select
+		Wait(50)
 	End If
 	
 	C3D_RenderScene()

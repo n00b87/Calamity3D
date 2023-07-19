@@ -18,6 +18,9 @@ c3d_vertex_count = 0
 'Returns number of points in clipped triangle Or 0 if no clipping was done
 Function C3D_ClipTriangle(ByRef tri, ByRef uv, ByRef clipped_tri, ByRef clipped_uv)
 	
+	SetColor(RGB(0, 0, 0))
+	DrawText("TRI: " + Str(tri[0]) + ", " + Str(tri[1]) + ", " + Str(tri[2]), 10, 30)
+	
 	clip_count = 0
 	
 	Dim lp[3], ld[3], p1[3], p2[3], p3[3], intersect[3]
