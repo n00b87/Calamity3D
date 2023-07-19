@@ -60,11 +60,11 @@ End Sub
 
 'corridor1_mesh = C3D_LoadMesh("Assets/terrain2.obj")
 'corridor1_texture = C3D_LoadImage("Assets/terrain1.png")
-corridor1_mesh = C3D_LoadMesh("Assets/terrain2.obj")
-corridor1_texture = C3D_LoadImage("Assets/terrain1.png")
+corridor1_mesh = C3D_LoadMesh("Assets/large_level.obj")
+corridor1_texture = C3D_LoadImage("Assets/plane1.bmp")
 C3D_SetMeshTexture(corridor1_mesh, corridor1_texture)
 
-c = C3D_CutMesh(corridor1_mesh, 2000)
+c = C3D_CutMesh(corridor1_mesh, 4000)
 Print "Cuts = "; c
 
 For i = 0 to C3D_Mesh_Cut_Count-1
@@ -211,7 +211,7 @@ End Function
 Sub FPSControl()
 	'RSHIFT NEEDS TO BE ADDED
 	
-	cam_speed = 24
+	cam_speed = 48 '24
 	sensitivity = 0.5
 	gravity = 0 '12
 	

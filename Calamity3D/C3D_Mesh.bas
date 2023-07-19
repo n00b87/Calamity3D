@@ -220,6 +220,7 @@ Function C3D_CutMesh(mesh, cell_size)
 						max_y = Max(max_y, vy[i])
 						max_z = Max(max_z, vz[i])
 						
+						
 						C3D_Mesh_TCoord[c_mesh, mesh_vert_num, 0] = tu[i]
 						C3D_Mesh_TCoord[c_mesh, mesh_vert_num, 1] = tv[i]
 						
@@ -255,6 +256,12 @@ Function C3D_CutMesh(mesh, cell_size)
 			C3D_Mesh_Origin[c_mesh, 0] = (min_x + max_x)/2
 			C3D_Mesh_Origin[c_mesh, 1] = (min_y + max_y)/2
 			C3D_Mesh_Origin[c_mesh, 2] = (min_z + max_z)/2
+			
+			C3D_Mesh_MinX[c_mesh] = min_x
+			C3D_Mesh_MinZ[c_mesh] = min_z
+			
+			C3D_Mesh_MaxX[c_mesh] = max_x
+			C3D_Mesh_MaxZ[c_mesh] = max_z
 			
 			r = abs(max_x - min_x)
 			r = Max(r, abs(max_y - min_y))
@@ -1518,13 +1525,24 @@ Function C3D_UpdateActorInViewRange(actor)
 	scale = C3D_Actor_Scale[actor]
 	
 	r = C3D_Mesh_Radius[ C3D_Actor_Source[actor] ]
-	If C3D_Distance3D(C3D_Camera_Position[0], C3D_Camera_Position[1], C3D_Camera_Position[2], C3D_ActorPositionX(actor), C3D_ActorPositionY(actor), C3D_ActorPositionZ(actor))-(r*scale) > C3D_MAX_Z_DEPTH+50 Then
+	mesh = C3D_Actor_Source[actor]
+	nx = C3D_ActorPositionX(actor) + C3D_Mesh_Origin[mesh, 0]
+	ny = C3D_ActorPositionY(actor) + C3D_Mesh_Origin[mesh, 1]
+	nz = C3D_ActorPositionZ(actor) + C3D_Mesh_Origin[mesh, 2]
+	'If C3D_Distance2D(C3D_Camera_Position[0], C3D_Camera_Position[2], nx, nz)-(r*scale) > C3D_MAX_Z_DEPTH+50 Then
+	If C3D_Distance3D(C3D_Camera_Position[0], C3D_Camera_Position[1], C3D_Camera_Position[2], nx, ny, nz)-(r*scale) > C3D_MAX_Z_DEPTH+50 Then
 		C3D_Actor_InViewRange[actor] = False
 	Else
 		C3D_Actor_InViewRange[actor] = True
-		if key(k_i) then : print "Actor in Range: "; actor
-		end if
 	End If
+	
+	'if key(k_i) and actor = 1 then
+	'	print "Camera: "; C3D_Camera_Position[0]; ", "; C3D_Camera_Position[1]; ", "; C3D_Camera_Position[2]
+	'	print "Actor: "; nx; ", "; ny; ", "; nz; "  --- "; C3D_Mesh_Origin[mesh, 0]; ", "; C3D_Mesh_Origin[mesh, 1]; ", "; C3D_Mesh_Origin[mesh, 2]
+	'	print "Min: "; C3D_Mesh_MinX[mesh]; ", "; C3D_Mesh_MaxX[mesh]
+	'	print "Distance: "; C3D_Distance3D(C3D_Camera_Position[0], C3D_Camera_Position[1], C3D_Camera_Position[2], nx, ny, nz)
+	'	print ""
+	'end if
 	
 	Return C3D_Actor_InViewRange[actor]
 End Function
