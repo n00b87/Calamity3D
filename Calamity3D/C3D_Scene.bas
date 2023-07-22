@@ -18,8 +18,6 @@ c3d_vertex_count = 0
 'Returns number of points in clipped triangle Or 0 if no clipping was done
 Function C3D_ClipTriangle(ByRef tri, ByRef uv, ByRef clipped_tri, ByRef clipped_uv)
 	
-	SetColor(RGB(0, 0, 0))
-	DrawText("TRI: " + Str(tri[0]) + ", " + Str(tri[1]) + ", " + Str(tri[2]), 10, 30)
 	
 	clip_count = 0
 	
@@ -187,6 +185,44 @@ Function C3D_ClipTriangle(ByRef tri, ByRef uv, ByRef clipped_tri, ByRef clipped_
 		dist = C3D_Distance3D(nc[0], nc[1], nc[2], clipped_tri[6], clipped_tri[7], clipped_tri[8])
 		clipped_uv[4] = C3D_Interpolate(0, AC_dist, dist, nc_uv[0], pt_uv[2])
 		clipped_uv[5] = C3D_Interpolate(0, AC_dist, dist, nc_uv[1], pt_uv[3])
+		
+		
+'		SetColor(RGB(0, 0, 0))
+'		
+'		DrawText("     TRI[0]: " + Str(tri[0]) + ", " + Str(tri[1]) + ", " + Str(tri[2]), 10, 30)
+'		DrawText("     TRI[1]: " + Str(tri[3]) + ", " + Str(tri[4]) + ", " + Str(tri[5]), 10, 50)
+'		DrawText("     TRI[2]: " + Str(tri[6]) + ", " + Str(tri[7]) + ", " + Str(tri[8]), 10, 70)
+'		
+'		DrawText("      UV[0]: " + Str_f(uv[0]) + ", " + Str_f(uv[1]), 10, 110)
+'		DrawText("      UV[1]: " + Str_f(uv[2]) + ", " + Str_f(uv[3]), 10, 130)
+'		DrawText("      UV[2]: " + Str_f(uv[4]) + ", " + Str_f(uv[5]), 10, 150)
+'		
+'		DrawText(" CLP TRI[0]: " + Str(clipped_tri[0]) + ", " + Str(clipped_tri[1]) + ", " + Str(clipped_tri[2]), 10, 190)
+'		DrawText(" CLP TRI[1]: " + Str(clipped_tri[3]) + ", " + Str(clipped_tri[4]) + ", " + Str(clipped_tri[5]), 10, 210)
+'		DrawText(" CLP TRI[2]: " + Str(clipped_tri[6]) + ", " + Str(clipped_tri[7]) + ", " + Str(clipped_tri[8]), 10, 230)
+'		
+'		DrawText("  CLP UV[0]: " + Str_f(clipped_uv[0]) + ", " + Str_f(clipped_uv[1]), 10, 270)
+'		DrawText("  CLP UV[1]: " + Str_f(clipped_uv[2]) + ", " + Str_f(clipped_uv[3]), 10, 290)
+'		DrawText("  CLP UV[2]: " + Str_f(clipped_uv[4]) + ", " + Str_f(clipped_uv[5]), 10, 310)
+'		
+'		if key(k_o) then
+'			Print "     TRI[0]: " + Str(tri[0]) + ", " + Str(tri[1]) + ", " + Str(tri[2])
+'			Print "     TRI[1]: " + Str(tri[3]) + ", " + Str(tri[4]) + ", " + Str(tri[5])
+'			Print "     TRI[2]: " + Str(tri[6]) + ", " + Str(tri[7]) + ", " + Str(tri[8])
+'			
+'			Print "      UV[0]: " + Str_f(uv[0]) + ", " + Str_f(uv[1])
+'			Print "      UV[1]: " + Str_f(uv[2]) + ", " + Str_f(uv[3])
+'			Print "      UV[2]: " + Str_f(uv[4]) + ", " + Str_f(uv[5])
+'			
+'			Print " CLP TRI[0]: " + Str(clipped_tri[0]) + ", " + Str(clipped_tri[1]) + ", " + Str(clipped_tri[2])
+'			Print " CLP TRI[1]: " + Str(clipped_tri[3]) + ", " + Str(clipped_tri[4]) + ", " + Str(clipped_tri[5])
+'			Print " CLP TRI[2]: " + Str(clipped_tri[6]) + ", " + Str(clipped_tri[7]) + ", " + Str(clipped_tri[8])
+'			
+'			Print "  CLP UV[0]: " + Str_f(clipped_uv[0]) + ", " + Str_f(clipped_uv[1])
+'			Print "  CLP UV[1]: " + Str_f(clipped_uv[2]) + ", " + Str_f(clipped_uv[3])
+'			Print "  CLP UV[2]: " + Str_f(clipped_uv[4]) + ", " + Str_f(clipped_uv[5])
+'		end if
+		
 		Return 3
 	End Select
 
@@ -661,11 +697,19 @@ Sub C3D_RenderScene()
 					y = C3D_TEXTURE_MAP_DIV_POS_Y[div, r, c]
 					src_w = C3D_Image_Width[texture]
 					src_h = C3D_Image_Height[texture]
+					'if div = 0 and r = 1 and c = 1 then
+					'	print texture
+					'end if
 					DrawImage_Blit_Ex(texture, x, y, w, h, 0, 0, src_w, src_h)
 				End If
 			Next 'c
 		Next 'r
 	Next 'div
+	
+	'dbg
+	'setcanvasvisible(C3D_CANVAS_BACKBUFFER,1)
+	'update
+	'waitkey
 	
 	If ImageExists(C3D_TEXTURE_MAP) Then
 		DeleteImage(C3D_TEXTURE_MAP)

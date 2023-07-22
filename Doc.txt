@@ -220,6 +220,17 @@ Sub C3D_SetMeshTexture(mesh, img)
 '
 
 
+Function C3D_GetMeshTexture(mesh)
+'
+'	Gets the RCBasic image slot assigned as the texture for a mesh
+'
+'	Parameters:
+'	mesh - mesh to set the texture on
+'
+'	Returns: Image Slot of the texture
+'
+
+
 Function C3D_CutMesh(mesh, cell_size)
 '
 '	Creates multiple meshes by divinding a mesh into blocks of cell_size
@@ -255,6 +266,25 @@ Sub C3D_ScaleMesh(mesh)
 '
 
 
+Sub C3D_SetHDMesh(mesh, hd_mesh)
+'
+'	Sets a High Detail Mesh for lower distance to camera
+'
+'	Parameters:
+'	mesh - mesh to scale
+'	hd_mesh - a high detail mesh to render at lower draw distance
+'
+
+Sub C3D_SetMeshHDDistance(mesh, distance)
+'
+'	Sets the draw distance to render the HD Mesh at
+'
+'	Parameters:
+'	mesh - mesh to scale
+'	distance - distance to draw the hd_mesh at
+'
+
+
 ----------------------------------------------------------------------------------------
 
 
@@ -285,6 +315,16 @@ Sub C3D_RefreshActorMatrix(actor)
 '	actor - actor to reset matrix on
 '
 '	NOTE: This does not need to be called manually unless there is some specific calculations you need the translation matrix for
+'
+
+
+Sub C3D_SetActorPickable(actor, flag)
+'
+'	Sets whether an actor can be selected with C3D_PickActor()
+'
+'	Parameters:
+'	actor - actor to set the flag on
+'	flag - TRUE/FALSE
 '
 
 
@@ -689,12 +729,23 @@ Sub C3D_AddStageGeometry(type, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4)
 '
 
 
-Sub C3D_SetCollisionMeshGeometry(actor)
+Sub C3D_AddStageGeometryFromActor(actor)
 '
 '	Adds stage collision geometry from actor's collision mesh
 '
 '	Parameters:
 '	actor - Actor to get collision mesh from
+'
+'	NOTE: This function will make vertical planes walls and everything else floors.
+'
+
+
+Sub C3D_AddStageGeometryFromMesh(mesh)
+'
+'	Adds stage collision geometry from a mesh
+'
+'	Parameters:
+'	mesh - Mesh to get collision data from
 '
 '	NOTE: This function will make vertical planes walls and everything else floors.
 '
