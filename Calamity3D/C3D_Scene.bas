@@ -18,6 +18,7 @@ c3d_vertex_count = 0
 'Returns number of points in clipped triangle Or 0 if no clipping was done
 Function C3D_ClipTriangle(ByRef tri, ByRef uv, ByRef clipped_tri, ByRef clipped_uv)
 	
+	
 	clip_count = 0
 	
 	Dim lp[3], ld[3], p1[3], p2[3], p3[3], intersect[3]
@@ -184,6 +185,44 @@ Function C3D_ClipTriangle(ByRef tri, ByRef uv, ByRef clipped_tri, ByRef clipped_
 		dist = C3D_Distance3D(nc[0], nc[1], nc[2], clipped_tri[6], clipped_tri[7], clipped_tri[8])
 		clipped_uv[4] = C3D_Interpolate(0, AC_dist, dist, nc_uv[0], pt_uv[2])
 		clipped_uv[5] = C3D_Interpolate(0, AC_dist, dist, nc_uv[1], pt_uv[3])
+		
+		
+'		SetColor(RGB(0, 0, 0))
+'		
+'		DrawText("     TRI[0]: " + Str(tri[0]) + ", " + Str(tri[1]) + ", " + Str(tri[2]), 10, 30)
+'		DrawText("     TRI[1]: " + Str(tri[3]) + ", " + Str(tri[4]) + ", " + Str(tri[5]), 10, 50)
+'		DrawText("     TRI[2]: " + Str(tri[6]) + ", " + Str(tri[7]) + ", " + Str(tri[8]), 10, 70)
+'		
+'		DrawText("      UV[0]: " + Str_f(uv[0]) + ", " + Str_f(uv[1]), 10, 110)
+'		DrawText("      UV[1]: " + Str_f(uv[2]) + ", " + Str_f(uv[3]), 10, 130)
+'		DrawText("      UV[2]: " + Str_f(uv[4]) + ", " + Str_f(uv[5]), 10, 150)
+'		
+'		DrawText(" CLP TRI[0]: " + Str(clipped_tri[0]) + ", " + Str(clipped_tri[1]) + ", " + Str(clipped_tri[2]), 10, 190)
+'		DrawText(" CLP TRI[1]: " + Str(clipped_tri[3]) + ", " + Str(clipped_tri[4]) + ", " + Str(clipped_tri[5]), 10, 210)
+'		DrawText(" CLP TRI[2]: " + Str(clipped_tri[6]) + ", " + Str(clipped_tri[7]) + ", " + Str(clipped_tri[8]), 10, 230)
+'		
+'		DrawText("  CLP UV[0]: " + Str_f(clipped_uv[0]) + ", " + Str_f(clipped_uv[1]), 10, 270)
+'		DrawText("  CLP UV[1]: " + Str_f(clipped_uv[2]) + ", " + Str_f(clipped_uv[3]), 10, 290)
+'		DrawText("  CLP UV[2]: " + Str_f(clipped_uv[4]) + ", " + Str_f(clipped_uv[5]), 10, 310)
+'		
+'		if key(k_o) then
+'			Print "     TRI[0]: " + Str(tri[0]) + ", " + Str(tri[1]) + ", " + Str(tri[2])
+'			Print "     TRI[1]: " + Str(tri[3]) + ", " + Str(tri[4]) + ", " + Str(tri[5])
+'			Print "     TRI[2]: " + Str(tri[6]) + ", " + Str(tri[7]) + ", " + Str(tri[8])
+'			
+'			Print "      UV[0]: " + Str_f(uv[0]) + ", " + Str_f(uv[1])
+'			Print "      UV[1]: " + Str_f(uv[2]) + ", " + Str_f(uv[3])
+'			Print "      UV[2]: " + Str_f(uv[4]) + ", " + Str_f(uv[5])
+'			
+'			Print " CLP TRI[0]: " + Str(clipped_tri[0]) + ", " + Str(clipped_tri[1]) + ", " + Str(clipped_tri[2])
+'			Print " CLP TRI[1]: " + Str(clipped_tri[3]) + ", " + Str(clipped_tri[4]) + ", " + Str(clipped_tri[5])
+'			Print " CLP TRI[2]: " + Str(clipped_tri[6]) + ", " + Str(clipped_tri[7]) + ", " + Str(clipped_tri[8])
+'			
+'			Print "  CLP UV[0]: " + Str_f(clipped_uv[0]) + ", " + Str_f(clipped_uv[1])
+'			Print "  CLP UV[1]: " + Str_f(clipped_uv[2]) + ", " + Str_f(clipped_uv[3])
+'			Print "  CLP UV[2]: " + Str_f(clipped_uv[4]) + ", " + Str_f(clipped_uv[5])
+'		end if
+		
 		Return 3
 	End Select
 
@@ -572,6 +611,8 @@ Sub C3D_RenderScene()
 			C3D_inZone_Actors_Count = C3D_inZone_Actors_Count + 1
 		End If
 	Next
+		
+	ArrayFill(C3D_Actor_Stage_Collision_Count, 0)
 	
 	For i = 0 to C3D_inZone_Actors_Count - 1
 		setCollisionData(C3D_inZone_Actors[i])
@@ -617,7 +658,7 @@ Sub C3D_RenderScene()
 	if C3D_Render_Type = C3D_RENDER_TYPE_WIREFRAME then
 		if c3d_index_count > 0 then
 			Canvas(C3D_CANVAS_RENDER)
-			SetClearColor(0)
+			'SetClearColor(0)
 			ClearCanvas
 			SetColor(RGB(255,255,255))
 			for a = 0 to c3d_index_count-1 step 3
@@ -630,19 +671,21 @@ Sub C3D_RenderScene()
 		return
 	end if
 	
+	
 	If c3d_index_count < 3 Then
 		Canvas(C3D_CANVAS_RENDER)
-		setclearcolor(RGB(153,217,234))
+		SetClearColor(C3D_CLEAR_COLOR)
 		ClearCanvas()
 		C3D_RenderBackground()
 		Return
 	End If
 	
 	Canvas(C3D_CANVAS_BACKBUFFER)
+	SetClearColor(0)
 	ClearCanvas()
 	
 	Dim w, h
-	
+	dc = 0
 	For div = 0 to C3D_MAX_TEXTURE_MAP_DIV-1
 		w = C3D_TEXTURE_MAP_DIV_WIDTH[div]
 		h = C3D_TEXTURE_MAP_DIV_HEIGHT[div]
@@ -654,27 +697,47 @@ Sub C3D_RenderScene()
 					y = C3D_TEXTURE_MAP_DIV_POS_Y[div, r, c]
 					src_w = C3D_Image_Width[texture]
 					src_h = C3D_Image_Height[texture]
+					'if div = 0 and r = 1 and c = 1 then
+					'	print texture
+					'end if
 					DrawImage_Blit_Ex(texture, x, y, w, h, 0, 0, src_w, src_h)
 				End If
 			Next 'c
 		Next 'r
 	Next 'div
 	
+	'dbg
+	'setcanvasvisible(C3D_CANVAS_BACKBUFFER,1)
+	'update
+	'waitkey
+	
 	If ImageExists(C3D_TEXTURE_MAP) Then
 		DeleteImage(C3D_TEXTURE_MAP)
 	End If
 	
+	
+	
+	
+	
+	
 	CanvasClip(C3D_TEXTURE_MAP, 0, 0, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT, 1)
+	
+	SetImageBlendMode(C3D_TEXTURE_MAP, BLENDMODE_BLEND)
+	SetImageColorMod(C3D_TEXTURE_MAP, 0)
 	
 	Canvas(C3D_CANVAS_RENDER)
 	SetClearColor(C3D_CLEAR_COLOR)
-	'setclearcolor(RGB(153,217,234))
+	'setclearcolor(rgb(0,255,0))
 	ClearCanvas()
 	
 	C3D_RenderBackground()
 	
+
 	'drawimage_blit_ex(C3D_TEXTURE_MAP, 0, 0, 128, 128, 0, 0, 512, 512)
-	'DrawImage_Blit_Ex(C3D_TEXTURE_MAP, 0, 0, 640, 480, 0, 0, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT)
+	'SetColor(RGB(255,0,0))
+	'RectFill(0,0, 640,480)
+	'DrawImage_Blit_Ex(C3D_TEXTURE_MAP, 1, 1, 640, 480, 0, 0, C3D_TEXTURE_MAP_WIDTH, C3D_TEXTURE_MAP_HEIGHT)
 	DrawGeometry(C3D_TEXTURE_MAP, c3d_vi, c3d_vertex, c3d_index_count, c3d_index)
+	
 	
 End Sub

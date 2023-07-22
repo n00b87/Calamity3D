@@ -1,12 +1,13 @@
 Include Once
 Include "Calamity3D/C3D_Utility.bas"
 
-C3D_MAX_IMAGES = 100
+C3D_MAX_IMAGES = 200
 
 Dim C3D_Image[C3D_MAX_IMAGES]
 Dim C3D_Image_Size[C3D_MAX_IMAGES, 2]
 Dim C3D_Image_Loaded[C3D_MAX_IMAGES]
 Dim C3D_Image_TM_Div[C3D_MAX_IMAGES, 3]
+Dim C3D_Reverse_Image_LookUp[4096]
 
 '---TEXTURE MAP---------------
 C3D_Image[0] = 0
@@ -19,6 +20,7 @@ Dim C3D_Image_Height[C3D_MAX_IMAGES]
 ArrayFill(C3D_Image, -1)
 ArrayFill(C3D_Image_Loaded, 0)
 ArrayFill(C3D_Image_TM_Div, -1)
+ArrayFill(C3D_Reverse_Image_LookUp, -1)
 
 Function C3D_LoadImage(img_file$)
 	If Not FileExists(img_file$) Then
@@ -41,6 +43,7 @@ Function C3D_LoadImage(img_file$)
 	For i = 1 to 4095 'RCBasic supports a max of 4096 images
 		If Not ImageExists(i) Then
 			img_slot = i
+			C3D_Reverse_Image_LookUp[i] = c_img
 			Exit For
 		End If
 	Next
@@ -92,8 +95,9 @@ Function C3D_GetFreeImage(w, h)
 	
 	img_slot = -1
 	For i = 1 to 4095 'RCBasic supports a max of 4096 images
-		If Not ImageExists(i) Then
+		If Not (ImageExists(i) Or C3D_Reverse_Image_LookUp[i] >= 0) Then
 			img_slot = i
+			C3D_Reverse_Image_LookUp[i] = c_img
 			Exit For
 		End If
 	Next
@@ -115,7 +119,7 @@ End Function
 Function C3D_GetFreeImageSlot()
 	img_slot = -1
 	For i = 1 to 4095 'RCBasic supports a max of 4096 images
-		If Not ImageExists(i) Then
+		If Not ( ImageExists(i) Or C3D_Reverse_Image_LookUp[i] >= 0 ) Then
 			img_slot = i
 			Exit For
 		End If

@@ -1,19 +1,45 @@
+Calamity3D Graphics library version 1.1
+
+
 This document is divided into the following categories.
 You can CTRL-F and search for any of them to find what you are looking for.
 
-1. WINDOW
-2. RENDERING
-3. MESH
-4. ACTORS
-5. CAMERA
-6. IMAGE RESOURCE MANAGEMENT
-7. BACKGROUND
-8. COLLISION
-9. MATRIX
-10. UTILITY
-11. ENGINE INTERNAL CALCULATIONS
+1. [WINDOW]
+2. [RENDERING]
+3. [MESH]
+4. [ACTORS]
+5. [CAMERA]
+6. [IMAGE RESOURCE MANAGEMENT]
+7. [BACKGROUND]
+8. [COLLISION]
+9. [MATRIX]
+10. [UTILITY]
+11. [ENGINE INTERNAL CALCULATIONS]
 
 
+
+[GETTING STARTED]
+
+Calamity3D is a library for rendering simple 3D polygon scenes in RCBasic v3.x (v3.20 or greater is required).
+
+Here is a basic summary of how a Calamity3D program is structured:
+
+1. Initialize the library with C3D_Init() - This will open your window for rendering.
+
+2. Load a mesh - This is the 3D model you want to render ( *.obj is the only supported format )
+
+3. Load a Texture
+
+4. Apply the Texture to your mesh
+
+5. Create an actor from the mesh - Actors are objects in your 3D scene.
+
+6. Render the Scene
+
+7. Update the Window
+
+
+NOTE: The reason that the Render function and update function are separate is because there may be occasions where you want to render your scene but not show it. For most people you will want to Render and Update at the same time but you have some flexibility here.
 
 
 Here is the simplest Calamity3D program to get you started:
@@ -66,7 +92,7 @@ IMPORTANT NOTES:
 
 
 
-### WINDOW
+[WINDOW]
 
 Sub C3D_Init(title$, w, h, fullscreen, vsync)
 '
@@ -104,7 +130,7 @@ Sub C3D_UpdateGlobalParameters()
 
 
 
-### RENDERING
+[RENDERING]
 
 Sub C3D_SetRenderType(render_type)
 '	
@@ -163,7 +189,7 @@ Sub C3D_SetScreenOcclusionRange()
 
 
 
-### MESH
+[MESH]
 
 Function C3D_CreateMesh()
 '
@@ -220,6 +246,69 @@ Sub C3D_SetMeshTexture(mesh, img)
 '
 
 
+Function C3D_GetMeshTexture(mesh)
+'
+'	Gets the RCBasic image slot assigned as the texture for a mesh
+'
+'	Parameters:
+'	mesh - mesh to set the texture on
+'
+'	Returns: Image Slot of the texture
+'
+
+
+Function C3D_CutMesh(mesh, cell_size)
+'
+'	Creates multiple meshes by divinding a mesh into blocks of cell_size
+'
+'	Parameters:
+'	mesh - The mesh to cut
+'	cell_size - The size of each block to cut from the mesh ( a square of cell_size x cell_size )
+'
+'	Returns: Number of Cuts
+'
+'	NOTES: C3D_GetMeshCuts() must be used before next call to this function
+'	
+'	NOTES: This can help with optimizing a scene that has a mesh that exceeds the distance of the depth buffer
+'
+
+
+Function C3D_GetMeshCuts(ByRef buffer)
+'
+'	Stores all the meshes created from last call to C3D_CutMesh()
+'
+'	Parameters:
+'	buffer - An array that must be of the size returned by C3D_CutMesh()
+'
+'
+
+
+Sub C3D_ScaleMesh(mesh)
+'
+'	Scales a mesh
+'
+'	Parameters:
+'	mesh - mesh to scale
+'
+
+
+Sub C3D_SetHDMesh(mesh, hd_mesh)
+'
+'	Sets a High Detail Mesh for lower distance to camera
+'
+'	Parameters:
+'	mesh - mesh to scale
+'	hd_mesh - a high detail mesh to render at lower draw distance
+'
+
+Sub C3D_SetMeshHDDistance(mesh, distance)
+'
+'	Sets the draw distance to render the HD Mesh at
+'
+'	Parameters:
+'	mesh - mesh to scale
+'	distance - distance to draw the hd_mesh at
+'
 
 
 ----------------------------------------------------------------------------------------
@@ -227,7 +316,7 @@ Sub C3D_SetMeshTexture(mesh, img)
 
 
 
-### ACTORS
+[ACTORS]
 
 Function C3D_CreateActor(actor_type, actor_source)
 '
@@ -252,6 +341,16 @@ Sub C3D_RefreshActorMatrix(actor)
 '	actor - actor to reset matrix on
 '
 '	NOTE: This does not need to be called manually unless there is some specific calculations you need the translation matrix for
+'
+
+
+Sub C3D_SetActorPickable(actor, flag)
+'
+'	Sets whether an actor can be selected with C3D_PickActor()
+'
+'	Parameters:
+'	actor - actor to set the flag on
+'	flag - TRUE/FALSE
 '
 
 
@@ -418,7 +517,7 @@ Function C3D_PickActor(x, y)
 
 
 
-### CAMERA
+[CAMERA]
 
 Sub C3D_GetCameraPosition(ByRef x, ByRef y, ByRef z)
 '
@@ -523,7 +622,7 @@ Sub C3D_LookAt(cameraPos_x, cameraPos_y, cameraPos_z, objectPos_x, objectPos_y, 
 
 
 
-### IMAGE RESOURCE MANAGEMENT
+[IMAGE RESOURCE MANAGEMENT]
 
 Function C3D_LoadImage(img_file$)
 '
@@ -588,7 +687,7 @@ Sub C3D_LinkImage(c3d_img, img_slot)
 
 
 
-### BACKGROUND
+[BACKGROUND]
 
 Sub C3D_GenerateBackground(left, right, back, front, up, down)
 '
@@ -620,7 +719,7 @@ Sub C3D_ShowBackground(flag)
 
 
 
-### COLLISION
+[COLLISION]
 
 Sub C3D_AddCollisionMesh(base_mesh, collision_mesh)
 '
@@ -656,12 +755,23 @@ Sub C3D_AddStageGeometry(type, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4)
 '
 
 
-Sub C3D_SetCollisionMeshGeometry(actor)
+Sub C3D_AddStageGeometryFromActor(actor)
 '
 '	Adds stage collision geometry from actor's collision mesh
 '
 '	Parameters:
 '	actor - Actor to get collision mesh from
+'
+'	NOTE: This function will make vertical planes walls and everything else floors.
+'
+
+
+Sub C3D_AddStageGeometryFromMesh(mesh)
+'
+'	Adds stage collision geometry from a mesh
+'
+'	Parameters:
+'	mesh - Mesh to get collision data from
 '
 '	NOTE: This function will make vertical planes walls and everything else floors.
 '
@@ -732,7 +842,7 @@ Sub C3D_DisableCollision(actor)
 
 
 
-## MATRIX
+[MATRIX]
 
 
 Function C3D_CreateMatrix(rows, cols)
@@ -808,7 +918,7 @@ Sub C3D_SetRotationMatrix(mat, axis, angle)
 
 
 
-### UTILITY
+[UTILITY]
 
 Sub C3D_RotateVertex2D(pt_x, pt_y, center_x, center_y, angleDeg, ByRef x, Byref y)
 '
@@ -1063,7 +1173,7 @@ function C3D_LinePlaneIntersection(ByRef line_point, ByRef line_direction, ByRef
 
 
 
-### ENGINE INTERNAL CALCULATIONS
+[ENGINE INTERNAL CALCULATIONS]
 
 Function C3D_ClipTriangle(ByRef tri, ByRef uv, ByRef clipped_tri, ByRef clipped_uv)
 '

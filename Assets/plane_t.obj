@@ -1,0 +1,33 @@
+# Created with Anim8or 1.00
+# Object "object01":
+
+mtllib plane_t.mtl
+
+# Shape "mesh01":
+g mesh01
+# No. points 4:
+v -992.471 -496.044 -0.12614
+v -992.471 489.234 -0.12614
+v 997.713 -496.044 -0.12614
+v 997.713 489.234 -0.12614
+
+# No. normals 5:
+vn 0 0 1
+vn 0 0 1
+vn 0 0 1
+vn 0 0 1
+vn 0 0 1
+
+# No. texture coordinates 4:
+vt 0 0
+vt 0 1
+vt 1 0
+vt 1 1
+
+# No. faces 1:
+
+usemtl ___default___
+
+f 3/3/4 4/4/5 2/2/3 1/1/2
+
+# End of Object "object01"

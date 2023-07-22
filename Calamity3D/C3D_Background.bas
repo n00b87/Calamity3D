@@ -196,5 +196,7 @@ Sub C3D_RenderBackground()
 		GetImageSize(C3D_Image[C3D_Bkg_Down_Image], dw, dh)
 		DrawImage_Blit_Ex(C3D_Image[C3D_Bkg_Down_Image], 0, 0, C3D_SCREEN_WIDTH, C3D_SCREEN_HEIGHT, 0, 0, dw, dh)
 		DrawImage_Blit_Ex(C3D_Image[C3D_Background_Image], 0, 0, C3D_SCREEN_WIDTH, C3D_SCREEN_HEIGHT, bkg_x, bkg_y, 256, 256)
+		
+		'Print "BKG"
 	End If
 End Sub

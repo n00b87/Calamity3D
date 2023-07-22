@@ -1,0 +1,31 @@
+# Created with Anim8or 1.00
+# Object "plane_t2":
+
+mtllib plane_t2.mtl
+
+# Shape "mesh01":
+g mesh01
+# No. points 3:
+v 502.703 502.704 -0.00014
+v -502.703 -502.704 0.00014
+v 502.703 -502.702 -0.00001
+
+# No. normals 5:
+vn 0 0 1
+vn 0 0 1
+vn 0 0 1
+vn 0 0 1
+vn 0 0 1
+
+# No. texture coordinates 3:
+vt 0.9999 0.9999
+vt 0.00010 0.9999
+vt 0.00010 0.00010
+
+# No. faces 1:
+
+usemtl material01
+
+f 2/1/3 3/2/4 1/3/2
+
+# End of Object "plane_t2"

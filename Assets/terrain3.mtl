@@ -1,0 +1,10 @@
+# Created with Anim8or 1.00
+# Object "terrain1":
+
+newmtl ___default___
+Ka 1 1 1
+Kd 0.875 0.875 0.875
+Ks 1 1 1
+Ns 752.6
+map_Kd terrain1.png
+

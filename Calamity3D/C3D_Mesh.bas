@@ -6,10 +6,16 @@ Include "Calamity3D/C3D_Utility.bas"
 Include "Calamity3D/C3D_Matrix.bas"
 
 C3D_MAX_MESH = 100
-C3D_MAX_VERTICES = 7000
-C3D_MAX_FACES = 6000
+C3D_MAX_VERTICES = 5000
+C3D_MAX_FACES = 4000
+
+C3D_MAX_CUTS = C3D_MAX_MESH - 1
 
 Dim C3D_Mesh_Active[C3D_MAX_MESH]
+Dim C3D_Mesh_Parent[C3D_MAX_MESH]
+
+Dim C3D_Mesh_HDMesh[C3D_MAX_MESH]
+Dim C3D_Mesh_HD_Distance[C3D_MAX_MESH]
 
 Dim C3D_Mesh_TMP_Vertex[C3D_MAX_VERTICES, 4] 'x, y, z, w = 1.0
 Dim C3D_Mesh_Vertex_Matrix[C3D_MAX_MESH] 'x, y, and z
@@ -35,6 +41,13 @@ Dim C3D_Mesh_Texture_Div_Parameters[C3D_MAX_MESH, 3] '0 - DIV, 1 - ROW, 2 - COL
 Dim C3D_Mesh_Texture_Div_Set[C3D_MAX_MESH]
 
 Dim C3D_Mesh_Radius[C3D_MAX_MESH] 'Used to determine if actor should be transformed
+Dim C3D_Mesh_MinX[C3D_MAX_MESH]
+Dim C3D_Mesh_MinZ[C3D_MAX_MESH]
+Dim C3D_Mesh_MaxX[C3D_MAX_MESH]
+Dim C3D_Mesh_MaxZ[C3D_MAX_MESH]
+
+Dim C3D_Mesh_Cuts[C3D_MAX_CUTS]
+Dim C3D_Mesh_Cut_Count
 
 Function C3D_GetVector(vector_size, vector_string$, delimeter$, ByRef vector_out)
 	Dim v[3]
@@ -83,6 +96,10 @@ Function C3D_CreateMesh()
 			C3D_Mesh_Face_Count[i] = 0
 			C3D_Mesh_Texture[i] = 0
 			C3D_Mesh_HasCollisionMesh[i] = False
+			C3D_Mesh_MinX[i] = 0
+			C3D_Mesh_MinZ[i] = 0
+			C3D_Mesh_HDMesh[i] = -1
+			C3D_Mesh_HD_Distance[i] = -C3D_CAMERA_LENS
 			return i
 		End If
 	Next
@@ -95,6 +112,202 @@ Sub C3D_DeleteMesh(mesh)
 	End If
 End Sub
 
+Sub C3D_SetHDMesh(mesh, hd_mesh)
+	C3D_Mesh_HDMesh[mesh] = hd_mesh
+End Sub
+
+Sub C3D_SetMeshHDDistance(mesh, distance)
+	C3D_Mesh_HD_Distance[mesh] = distance
+End Sub
+
+Sub C3D_ScaleMesh(mesh, scale)
+	ScalarMatrix(C3D_Mesh_Vertex_Matrix[mesh], C3D_Mesh_Vertex_Matrix[mesh], scale)
+	C3D_Mesh_Radius[mesh] = C3D_Mesh_Radius[mesh] * scale
+	C3D_Mesh_MinX[mesh] = C3D_Mesh_MinX[mesh] * scale
+	C3D_Mesh_MinZ[mesh] = C3D_Mesh_MinZ[mesh] * scale
+	C3D_Mesh_MaxX[mesh] = C3D_Mesh_MaxX[mesh] * scale
+	C3D_Mesh_MaxZ[mesh] = C3D_Mesh_MaxZ[mesh] * scale
+End Sub
+
+Sub C3D_GetMeshCuts(ByRef buffer)
+	For i = 0 to C3D_Mesh_Cut_Count-1
+		buffer[i] = C3D_Mesh_Cuts[i]
+	Next
+End Sub
+
+
+Function C3D_CutMesh(mesh, cell_size)
+	
+	v_offset = 0
+	t_offset = 0
+	set_offset = false
+	'Print "MESH LOAD"
+	
+	C3D_Mesh_Cut_Count = 0
+	
+	width = Abs(C3D_Mesh_MaxX[mesh] - C3D_Mesh_MinX[mesh])
+	depth = Abs(C3D_Mesh_MaxZ[mesh] - C3D_Mesh_MinZ[mesh])
+	
+	rows = int(width/cell_size)+1
+	cols = int(depth/cell_size)+1
+	
+	Dim mesh_face_remap[C3D_MAX_FACES]
+	Dim mesh_vertex_remap[C3D_MAX_VERTICES]
+	
+	face_remap_count = 0
+	vertex_remap_count = 0
+	
+	ArrayFill(mesh_face_remap, false)
+	
+	Dim cell[rows*cols]
+	Dim vx[4], vy[4], vz[4], vi[4], tu[4], tv[4]
+	
+	ci = 0
+	
+	num_cuts = 0
+	
+	'print "W/h = ";width;", ";depth
+	
+	Dim min_x, min_y, min_z
+	Dim max_x, max_y, max_z
+	
+	For cx = C3D_Mesh_MinX[mesh] to (C3D_Mesh_MinX[mesh] + width) Step cell_size
+	For cz = C3D_Mesh_MinZ[mesh] to (C3D_Mesh_MinZ[mesh] + depth) Step cell_size
+		'Print "CXZ = "; cx;", ";cz
+		
+		cell[ci] = C3D_CreateMesh()
+		
+		ArrayFill(mesh_vertex_remap, -1)
+		
+		min_x = 9999999
+		min_y = 9999999
+		min_z = 9999999
+		
+		max_x = -9999999
+		max_y = -9999999
+		max_z = -9999999
+		
+		
+		For face = 0 to C3D_Mesh_Face_Count[mesh]-1
+			store_face = false
+		
+			For vertex = 0 to C3D_Mesh_Face_Vertex_Count[mesh, face]-1 'Vertex and TCoord count will be the same
+			
+				vx[vertex] = MatrixValue(C3D_Mesh_Vertex_Matrix[mesh], 0, C3D_Mesh_Face_Vertex[mesh, face, vertex])
+				vy[vertex] = MatrixValue(C3D_Mesh_Vertex_Matrix[mesh], 1, C3D_Mesh_Face_Vertex[mesh, face, vertex])
+				vz[vertex] = MatrixValue(C3D_Mesh_Vertex_Matrix[mesh], 2, C3D_Mesh_Face_Vertex[mesh, face, vertex])
+				vi[vertex] = C3D_Mesh_Face_Vertex[mesh, face, vertex]
+				
+				tu[vertex] = C3D_Mesh_TCoord[mesh, vi[vertex], 0]
+				tv[vertex] = C3D_Mesh_TCoord[mesh, vi[vertex], 1]
+				
+				If vx[vertex] < (cx + cell_size) And vz[vertex] < (cz + cell_size) Then
+					store_face = true
+				End If
+				
+			Next
+			
+			If store_face And (Not mesh_face_remap[face]) Then
+				mesh_face_remap[face] = true
+				
+				c_mesh = cell[ci]
+				mesh_face_num = C3D_Mesh_Face_Count[c_mesh]
+				C3D_Mesh_Face_Count[c_mesh] = C3D_Mesh_Face_Count[c_mesh] + 1
+				
+				mesh_vert_num = C3D_Mesh_Vertex_Count[c_mesh]
+				
+				
+				C3D_Mesh_Face_Vertex_Count[c_mesh, mesh_face_num] = C3D_Mesh_Face_Vertex_Count[mesh, face]
+				
+				
+				For i = 0 to C3D_Mesh_Face_Vertex_Count[mesh, face]-1
+					If mesh_vertex_remap[vi[i]] >= 0 Then
+						C3D_Mesh_Face_Vertex[c_mesh, mesh_face_num, i] = mesh_vertex_remap[vi[i]]
+						C3D_Mesh_Face_TCoord[c_mesh, mesh_face_num, i] = mesh_vertex_remap[vi[i]]
+					Else
+						mesh_vert_num = C3D_Mesh_Vertex_Count[c_mesh]
+						
+						C3D_Mesh_TMP_Vertex[mesh_vert_num, 0] = vx[i]
+						C3D_Mesh_TMP_Vertex[mesh_vert_num, 1] = vy[i]
+						C3D_Mesh_TMP_Vertex[mesh_vert_num, 2] = vz[i]
+						C3D_Mesh_TMP_Vertex[mesh_vert_num, 3] = 1.0
+						
+						
+						
+						min_x = Min(min_x, vx[i])
+						min_y = Min(min_y, vy[i])
+						min_z = Min(min_z, vz[i])
+						
+						max_x = Max(max_x, vx[i])
+						max_y = Max(max_y, vy[i])
+						max_z = Max(max_z, vz[i])
+						
+						
+						C3D_Mesh_TCoord[c_mesh, mesh_vert_num, 0] = tu[i]
+						C3D_Mesh_TCoord[c_mesh, mesh_vert_num, 1] = tv[i]
+						
+						mesh_vertex_remap[vi[i]] = mesh_vert_num
+						
+						C3D_Mesh_Face_Vertex[c_mesh, mesh_face_num, i] = C3D_Mesh_Vertex_Count[c_mesh]
+						C3D_Mesh_Face_TCoord[c_mesh, mesh_face_num, i] = C3D_Mesh_TCoord_Count[c_mesh]
+						
+						C3D_Mesh_TCoord_Count[c_mesh] = C3D_Mesh_TCoord_Count[c_mesh] + 1
+						C3D_Mesh_Vertex_Count[c_mesh] = C3D_Mesh_Vertex_Count[c_mesh] + 1
+					End If
+				Next
+				
+			End If
+			
+		Next
+		
+		c_mesh = cell[ci]
+		
+		If C3D_Mesh_Vertex_Count[c_mesh] <= 0 Then
+			C3D_Mesh_Active[c_mesh] = False
+			'Print "false: "; ci
+		Else
+			'Print "Count = "; C3D_Mesh_Vertex_Count[c_mesh]
+			C3D_Mesh_Cuts[num_cuts] = cell[ci]
+			tmp_matrix = C3D_CreateMatrix(2,2)
+			MatrixFromBuffer(tmp_matrix, C3D_Mesh_Vertex_Count[c_mesh], 4, C3D_Mesh_TMP_Vertex)
+			TransposeMatrix(tmp_matrix, C3D_Mesh_Vertex_Matrix[c_mesh])
+			C3D_DeleteMatrix(tmp_matrix)
+			
+			C3D_Mesh_Parent[c_mesh] = mesh
+			
+			C3D_Mesh_Origin[c_mesh, 0] = (min_x + max_x)/2
+			C3D_Mesh_Origin[c_mesh, 1] = (min_y + max_y)/2
+			C3D_Mesh_Origin[c_mesh, 2] = (min_z + max_z)/2
+			
+			C3D_Mesh_MinX[c_mesh] = min_x
+			C3D_Mesh_MinZ[c_mesh] = min_z
+			
+			C3D_Mesh_MaxX[c_mesh] = max_x
+			C3D_Mesh_MaxZ[c_mesh] = max_z
+			
+			r = abs(max_x - min_x)
+			r = Max(r, abs(max_y - min_y))
+			r = Max(r, abs(max_z - min_z))
+			
+			C3D_Mesh_Radius[c_mesh] = r+1
+			
+			ci = ci + 1
+			num_cuts = num_cuts + 1
+		End If
+		
+		If num_cuts >= C3D_MAX_CUTS Then
+			C3D_Mesh_Cut_Count = num_cuts
+			return num_cuts
+		End If
+	
+	Next
+	Next
+	
+	C3D_Mesh_Cut_Count = num_cuts
+	Return num_cuts
+End Function
+
+
 
 Function C3D_LoadMesh(obj_file$)
 	f = FreeFile
@@ -104,6 +317,12 @@ Function C3D_LoadMesh(obj_file$)
 	End If
 	
 	mesh_num = C3D_CreateMesh()
+	
+	If mesh_num = -1 Then
+		FileClose(f)
+		Return -1
+	End If
+	
 	C3D_Mesh_HasCollisionMesh[mesh_num] = False
 	
 	Dim min_x, min_y, min_z, max_x, max_y, max_z, min_max_init
@@ -207,6 +426,11 @@ Function C3D_LoadMesh(obj_file$)
 	C3D_Mesh_Origin[mesh_num, 1] = (min_y + max_y)/2
 	C3D_Mesh_Origin[mesh_num, 2] = (min_z + max_z)/2
 	
+	C3D_Mesh_MinX[mesh_num] = min_x
+	C3D_Mesh_MinZ[mesh_num] = min_z
+	C3D_Mesh_MaxX[mesh_num] = max_x
+	C3D_Mesh_MaxZ[mesh_num] = max_z
+	
 	r = abs(max_x - min_x)
 	r = Max(r, abs(max_y - min_y))
 	r = Max(r, abs(max_z - min_z))
@@ -299,6 +523,11 @@ Function C3D_DefineMesh(m_vert_count, ByRef m_vert, m_index_count, ByRef m_ind, 
 	C3D_Mesh_Origin[mesh_num, 1] = (min_y + max_y)/2
 	C3D_Mesh_Origin[mesh_num, 2] = (min_z + max_z)/2
 	
+	C3D_Mesh_MinX[mesh_num] = min_x
+	C3D_Mesh_MinZ[mesh_num] = min_z
+	C3D_Mesh_MaxX[mesh_num] = max_x
+	C3D_Mesh_MaxZ[mesh_num] = max_z
+	
 	r = abs(max_x - min_x)
 	r = Max(r, abs(max_y - min_y))
 	r = Max(r, abs(max_z - min_z))
@@ -327,6 +556,10 @@ Sub C3D_SetMeshTexture(mesh, img)
 End Sub
 
 
+Function C3D_GetMeshTexture(mesh)
+	Return C3D_Mesh_Texture[mesh]
+End Function
+
 
 
 C3D_MAX_ACTORS = 100
@@ -341,6 +574,9 @@ Dim C3D_Actor_Active[C3D_MAX_ACTORS]
 
 Dim C3D_Actor_Visible[C3D_MAX_ACTORS]
 
+Dim C3D_Actor_CamDistance[C3D_MAX_ACTORS]
+Dim C3D_Actor_isPickable[C3D_MAX_ACTORS]
+
 Dim C3D_Actor_Position[C3D_MAX_ACTORS, 3]
 Dim C3D_Actor_Rotation[C3D_MAX_ACTORS, 3]
 Dim C3D_Actor_Scale[C3D_MAX_ACTORS]
@@ -350,7 +586,9 @@ C3D_ACTOR_TYPE_MESH = 2
 
 Dim C3D_Actor_Type[C3D_MAX_ACTORS]
 
-Dim C3D_Actor_Source[C3D_MAX_ACTORS] 'Image or Mesh 
+Dim C3D_Actor_Source[C3D_MAX_ACTORS] 'Image or Mesh
+
+Dim C3D_Actor_Base_Source[C3D_MAX_ACTORS]
 
 C3D_ACTOR_MATRIX_T = 1
 C3D_ACTOR_MATRIX_RX = 2
@@ -359,7 +597,7 @@ C3D_ACTOR_MATRIX_RZ = 4
 C3D_ACTOR_MATRIX_COLLIDE_ORIGIN = 5
 C3D_ACTOR_MATRIX_COLLIDE_DIRECTION = 6
 
-C3D_MAX_SCENE_FACES = 3000
+C3D_MAX_SCENE_FACES = 4000
 Dim C3D_Visible_Faces[C3D_MAX_SCENE_FACES, 2] '0 is actor, 1 is face
 Dim C3D_ZSort_Faces[C3D_MAX_Z_DEPTH, C3D_MAX_SCENE_FACES] 'reference item in C3D_Visible_Faces, 500 is max Z depth (I will probably change it later)
 Dim C3D_ZSort_Faces_Distance[C3D_MAX_Z_DEPTH, C3D_MAX_SCENE_FACES]
@@ -415,6 +653,10 @@ Dim C3D_Actor_Collision_Type[C3D_MAX_ACTORS] 'DYNAMIC OR STATIC
 Dim C3D_Actor_Collisions[C3D_MAX_ACTORS, C3D_MAX_ACTORS]
 
 C3D_MAX_STAGE_GEOMETRY = 300
+
+C3D_MAX_ACTOR_STAGE_COLLISIONS = 20
+Dim C3D_Actor_Stage_Collision[C3D_MAX_ACTORS, C3D_MAX_ACTOR_STAGE_COLLISIONS]
+Dim C3D_Actor_Stage_Collision_Count[C3D_MAX_ACTORS]
 
 Dim C3D_Stage_Geometry[C3D_MAX_STAGE_GEOMETRY, 13]
 Dim C3D_Stage_Geometry_Actor_Collisions[C3D_MAX_STAGE_GEOMETRY, C3D_MAX_ACTORS]
@@ -487,7 +729,7 @@ function inTol(a, b, tol)
 	return (b >= (a-tol)) and (b <= (a+tol))
 end function
 
-Sub C3D_SetCollisionMeshGeometry(actor)
+Sub C3D_AddStageGeometryFromActor(actor)
 	mesh = C3D_Actor_Source[actor]
 	
 	tol = 0.5
@@ -533,6 +775,8 @@ Sub C3D_SetCollisionMeshGeometry(actor)
 	FillMatrixRows(tmp_trans_matrix, 0, 1, ax)
 	FillMatrixRows(tmp_trans_matrix, 1, 1, ay)
 	FillMatrixRows(tmp_trans_matrix, 2, 1, az)
+	
+	'print "debug info: (";ax;", ";ay;", ";az;")  scale = ";scale
 	
 	C3D_DeleteMatrix(tmp_trans_matrix)
 	
@@ -595,6 +839,7 @@ Sub C3D_SetCollisionMeshGeometry(actor)
 		end if
 		
 		C3D_AddStageGeometry(type, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4)
+		'print "dbg: ";x1;","; y1;","; z1;","; x2;","; y2;","; z2;","; x3;","; y3;","; z3;","; x4;","; y4;","; z4
 	Next
 	
 	C3D_DeleteMatrix(tmp_matrix1)
@@ -602,6 +847,80 @@ Sub C3D_SetCollisionMeshGeometry(actor)
 	
 	
 End Sub
+
+
+Sub C3D_AddStageGeometryFromMesh(mesh)
+	
+	tol = 0.5
+	
+	c_vert_offset = 0 'C3D_Mesh_Collision_Vertex_Offset[mesh]
+	c_vert_count = C3D_Mesh_Vertex_Count[mesh] 'C3D_Mesh_Collision_Vertex_Count[mesh] 
+	c_face_count = C3D_Mesh_Face_Count[mesh] 'C3D_Mesh_Collision_Face_Count[mesh]
+	c_face_offset = 0 'C3D_Mesh_Collision_Face_Offset[mesh]
+	
+	geo_matrix = C3D_Mesh_Vertex_Matrix[mesh]
+	
+	type = C3D_STAGE_GEOMETRY_TYPE_FLOOR
+	
+	For face = 0 To c_face_count - 1
+	
+		v1 = C3D_Mesh_Face_Vertex[mesh, face + c_face_offset, 0] + c_vert_offset
+		v2 = C3D_Mesh_Face_Vertex[mesh, face + c_face_offset, 1] + c_vert_offset
+		v3 = C3D_Mesh_Face_Vertex[mesh, face + c_face_offset, 2] + c_vert_offset
+		v4 = C3D_Mesh_Face_Vertex[mesh, face + c_face_offset, 3] + c_vert_offset
+		
+		f_vert_count = C3D_Mesh_Face_Vertex_Count[mesh, face + c_face_offset]
+		
+		x1 = MatrixValue(geo_matrix, 0, v1)
+		y1 = MatrixValue(geo_matrix, 1, v1)
+		z1 = MatrixValue(geo_matrix, 2, v1)
+		
+		x2 = MatrixValue(geo_matrix, 0, v2)
+		y2 = MatrixValue(geo_matrix, 1, v2)
+		z2 = MatrixValue(geo_matrix, 2, v2)
+		
+		x3 = MatrixValue(geo_matrix, 0, v3)
+		y3 = MatrixValue(geo_matrix, 1, v3)
+		z3 = MatrixValue(geo_matrix, 2, v3)
+		
+		x4 = MatrixValue(geo_matrix, 0, v4)
+		y4 = MatrixValue(geo_matrix, 1, v4)
+		z4 = MatrixValue(geo_matrix, 2, v4)
+		
+		min_x = min(min(x1, x2), min(x3, x4))
+		min_y = min(min(y1, y2), min(y3, y4))
+		min_z = min(min(z1, z2), min(z3, z4))
+		
+		max_x = max(max(x1, x2), max(x3, x4))
+		max_y = max(max(y1, y2), max(y3, y4))
+		max_z = max(max(z1, z2), max(z3, z4))
+		
+		cmp_1 = ( inTol(x1, min_x, tol) And inTol(z1, min_z, tol) ) + ( inTol(x2, min_x, tol) And inTol(z2, min_z, tol) ) + ( inTol(x3, min_x, tol) And inTol(z3, min_z, tol) ) + ( inTol(x4, min_x, tol) And inTol(z4, min_z, tol) )
+		dbg1 = cmp_1
+		if cmp_1 <> 2 then
+			cmp_1 = ( inTol(x1, min_x, tol) And inTol(z1, max_z, tol) ) + ( inTol(x2, min_x, tol) And inTol(z2, max_z, tol) ) + ( inTol(x3, min_x, tol) And inTol(z3, max_z, tol) ) + ( inTol(x4, min_x, tol) And inTol(z4, max_z, tol) )
+		end if
+		
+		cmp_2 = ( inTol(x1, max_x, tol) And inTol(z1, max_z, tol) ) + ( inTol(x2, max_x, tol) And inTol(z2, max_z, tol) ) + ( inTol(x3, max_x, tol) And inTol(z3, max_z, tol) ) + ( inTol(x4, max_x, tol) And inTol(z4, max_z, tol) )
+		dbg2 = cmp_2
+		if cmp_2 <> 2 then
+			cmp_2 = ( inTol(x1, max_x, tol) And inTol(z1, min_z, tol) ) + ( inTol(x2, max_x, tol) And inTol(z2, min_z, tol) ) + ( inTol(x3, max_x, tol) And inTol(z3, min_z, tol) ) + ( inTol(x4, max_x, tol) And inTol(z4, min_z, tol) )
+		end if
+		
+		
+		if cmp_1 = 2 And cmp_2 = 2 Then
+			type = C3D_STAGE_GEOMETRY_TYPE_WALL
+		else
+			type = C3D_STAGE_GEOMETRY_TYPE_FLOOR
+		end if
+		
+		C3D_AddStageGeometry(type, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4)
+		'print "dbg: ";x1;","; y1;","; z1;","; x2;","; y2;","; z2;","; x3;","; y3;","; z3;","; x4;","; y4;","; z4
+	Next
+	
+	
+End Sub
+
 
 Sub C3D_SetCollisionParameters(actor, CX1, CY1, CZ1, CX2, CY2, CZ2, R)
 	C3D_Actor_Collision_Shape[actor, 0] = C3D_COLLISION_SHAPE_CAPSULE
@@ -778,6 +1097,8 @@ Sub setCollisionData(actor)
 				'debug
 				if not (tx = actor_cx1 and tz = actor_cz1) then
 					C3D_Stage_Geometry_Actor_Collisions[i, actor] = True
+					C3D_Actor_Stage_Collision[actor, C3D_Actor_Stage_Collision_Count[actor]] = i
+					C3D_Actor_Stage_Collision_Count[actor] = C3D_Actor_Stage_Collision_Count[actor] + 1
 				end if
 			Case C3D_STAGE_GEOMETRY_TYPE_FLOOR
 				
@@ -839,11 +1160,17 @@ Sub setCollisionData(actor)
 						actor_cy1 = intersect[1] + actor_cr + 1
 						actor_cy2 = actor_cy1 + (max_y-min_y)
 						C3D_Stage_Geometry_Actor_Collisions[i, actor] = True
+						
+						C3D_Actor_Stage_Collision[actor, C3D_Actor_Stage_Collision_Count[actor]] = i
+						C3D_Actor_Stage_Collision_Count[actor] = C3D_Actor_Stage_Collision_Count[actor] + 1
 					elseif max_y <= intersect[1] And distance_max <= actor_cr Or (ocy <= intersect[1] And max_y >= intersect[1]) then
 						diff_y = max_y - (intersect[1] + actor_cr)
 						actor_cy1 = actor_cy1 + diff_y
 						actor_cy2 = actor_cy2 + diff_y
 						C3D_Stage_Geometry_Actor_Collisions[i, actor] = True
+						
+						C3D_Actor_Stage_Collision[actor, C3D_Actor_Stage_Collision_Count[actor]] = i
+						C3D_Actor_Stage_Collision_Count[actor] = C3D_Actor_Stage_Collision_Count[actor] + 1
 					end if
 					
 				
@@ -940,6 +1267,10 @@ Function C3D_CreateActor(actor_type, actor_source)
 			C3D_Actor_Type[i] = actor_type
 			C3D_Actor_Source[i] = actor_source
 			
+			C3D_Actor_Base_Source[i] = actor_source
+			
+			C3D_Actor_CamDistance[i] = 0
+			C3D_Actor_isPickable[i] = False
 			
 			'Defaults
 			C3D_Actor_Position[i, 0] = 0
@@ -980,8 +1311,8 @@ Function C3D_CreateActor(actor_type, actor_source)
 						w = 2
 						h = 2
 					End If
-					w = 200
-					h = 200
+					w = C3D_Image_Width[actor_source]
+					h = C3D_Image_Height[actor_source]
 					vert[0] = 0 : vert[1] = h : vert[2] = 0
 					vert[3] = w : vert[4] = h : vert[5] = 0
 					vert[6] = w : vert[7] = 0 : vert[8] = 0
@@ -1000,7 +1331,8 @@ Function C3D_CreateActor(actor_type, actor_source)
 					C3D_SetMeshTexture(mesh, actor_source)
 					C3D_Actor_Source[i] = mesh
 					actor_source = mesh
-					
+					C3D_Actor_Base_Source[i] = mesh
+					'print "**Mesh = "; mesh; ", "; C3D_Actor_Base_Source[i]; ", "; C3D_Actor_Source[i]
 					DimMatrix(C3D_Actor_Matrix[i, 0], 4, C3D_Mesh_Vertex_Count[actor_source], 0) 'DIM OUTPUT MATRIX
 					DimMatrix(C3D_Actor_Matrix[i, C3D_ACTOR_MATRIX_T], 4, C3D_Mesh_Vertex_Count[actor_source], 0) 'DIM TRANSLATION MATRIX
 					ZeroMatrix(C3D_Actor_Matrix[i, C3D_ACTOR_MATRIX_T])
@@ -1010,6 +1342,10 @@ Function C3D_CreateActor(actor_type, actor_source)
 	Next
 	Return -1
 End Function
+
+Sub C3D_SetActorPickable(actor, flag)
+	C3D_Actor_isPickable[actor] = flag
+End Sub
 
 Sub C3D_SetActorVisible(actor, flag)
 	C3D_Actor_Visible[actor] = flag
@@ -1269,6 +1605,9 @@ Sub C3D_ComputeVisibleFaces()
 					
 					C3D_TEXTURE_MAP_DIV_IMAGES[div, div_row, div_col] = texture
 					
+					'debug
+					'if actor = 9 then : print "texture = "; texture : print "div = ";div;", ";div_row;", ";div_col : end if
+					
 					div_col = div_col + 1
 					If div_col >= C3D_TEXTURE_MAP_DIV[div, 1] Then
 						div_col = 0
@@ -1295,6 +1634,7 @@ Sub C3D_ComputeVisibleFaces()
 	'Print ""
 End Sub
 
+
 Function C3D_UpdateActorInViewRange(actor)
 	If Not C3D_Actor_Active[actor] Then
 		Return False
@@ -1303,11 +1643,25 @@ Function C3D_UpdateActorInViewRange(actor)
 	scale = C3D_Actor_Scale[actor]
 	
 	r = C3D_Mesh_Radius[ C3D_Actor_Source[actor] ]
-	If C3D_Distance3D(C3D_Camera_Position[0], C3D_Camera_Position[1], C3D_Camera_Position[2], C3D_ActorPositionX(actor), C3D_ActorPositionY(actor), C3D_ActorPositionZ(actor))-(r*scale) > C3D_MAX_Z_DEPTH+50 Then
+	mesh = C3D_Actor_Source[actor]
+	nx = C3D_ActorPositionX(actor) + C3D_Mesh_Origin[mesh, 0]
+	ny = C3D_ActorPositionY(actor) + C3D_Mesh_Origin[mesh, 1]
+	nz = C3D_ActorPositionZ(actor) + C3D_Mesh_Origin[mesh, 2]
+	C3D_Actor_CamDistance[actor] = C3D_Distance3D(C3D_Camera_Position[0], C3D_Camera_Position[1], C3D_Camera_Position[2], nx, ny, nz)-(r*scale)
+	'If C3D_Distance2D(C3D_Camera_Position[0], C3D_Camera_Position[2], nx, nz)-(r*scale) > C3D_MAX_Z_DEPTH+50 Then
+	If C3D_Actor_CamDistance[actor] > C3D_MAX_Z_DEPTH+50 Then
 		C3D_Actor_InViewRange[actor] = False
 	Else
 		C3D_Actor_InViewRange[actor] = True
 	End If
+	
+	'if key(k_i) and actor = 1 then
+	'	print "Camera: "; C3D_Camera_Position[0]; ", "; C3D_Camera_Position[1]; ", "; C3D_Camera_Position[2]
+	'	print "Actor: "; nx; ", "; ny; ", "; nz; "  --- "; C3D_Mesh_Origin[mesh, 0]; ", "; C3D_Mesh_Origin[mesh, 1]; ", "; C3D_Mesh_Origin[mesh, 2]
+	'	print "Min: "; C3D_Mesh_MinX[mesh]; ", "; C3D_Mesh_MaxX[mesh]
+	'	print "Distance: "; C3D_Distance3D(C3D_Camera_Position[0], C3D_Camera_Position[1], C3D_Camera_Position[2], nx, ny, nz)
+	'	print ""
+	'end if
 	
 	Return C3D_Actor_InViewRange[actor]
 End Function
@@ -1320,7 +1674,7 @@ Function C3D_PickActor(x, y)
 	
 	For actor = 0 to C3D_MAX_ACTORS-1
 	
-		If Not C3D_Actor_InViewRange[actor] Then
+		If Not (C3D_Actor_InViewRange[actor] And C3D_Actor_isPickable[actor]) Then
 			Continue
 		End If
 	
@@ -1371,17 +1725,28 @@ Sub C3D_ComputeTransforms()
 	rev_y = -C3D_Camera_Rotation[1]
 	rev_z = -C3D_Camera_Rotation[2]
 	
+	LENS_X2 = C3D_CAMERA_LENS*2
 	
 	For actor = 0 to C3D_MAX_ACTORS-1
 		
 		'If the actor isn't part of the scene then check the next one
-		If Not (C3D_Actor_Active[actor] And C3D_UpdateActorInViewRange(actor)) Then
+		If Not C3D_Actor_Active[actor] Then
+			Continue
+		ElseIf Not C3D_UpdateActorInViewRange(actor) Then
 			Continue
 		End If
 		
 		
 		'Get the mesh for the actor
+		
+		C3D_Actor_Source[actor] = C3D_Actor_Base_Source[actor]
 		mesh = C3D_Actor_Source[actor]
+		If C3D_Actor_CamDistance[actor] <= C3D_Mesh_HD_Distance[mesh] Then
+			If C3D_Mesh_HDMesh[mesh] >= 0 Then
+				C3D_Actor_Source[actor] = C3D_Mesh_HDMesh[mesh]
+				mesh = C3D_Actor_Source[actor]
+			End If
+		End If
 		
 		'Scale (Note: Camera does not have a scale. The scene can be scales by changing the left, right, top, and bottom values)
 		scale = C3D_Actor_Scale[actor]
@@ -1415,6 +1780,15 @@ Sub C3D_ComputeTransforms()
 		
 		'Add the Actors Translation Matrix to its rotated vertices (ie. Move the actor to its position that is set with C3D_SetActorPosition or C3D_MoveActor)
 		AddMatrix(C3D_Actor_Matrix[actor, C3D_ACTOR_MATRIX_T], tmp_matrix1, tmp_matrix2)
+		
+		'If actor = 9 Then
+		'	dim w, h
+		'	GetMatrixSize(C3D_Actor_Matrix[actor, C3D_ACTOR_MATRIX_T], w, h)
+		'	Print "Trans Mat: "; w;" x ";h
+		'	
+		'	GetMatrixSize(tmp_matrix1, w, h)
+		'	Print "Tmp Mat: "; w;" x ";h
+		'End If
 		
 		'Move the actor based on its Position to the Camera (ie. If an actor is in the center of the view and the camera moves left then the actor should move right)
 		SubtractMatrix(tmp_matrix2, camera_matrix_t, tmp_matrix1)

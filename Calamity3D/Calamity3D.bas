@@ -1,6 +1,6 @@
 Include Once
 
-C3D_CAMERA_LENS = 350 'Distance from 0, facing down negative z-axis
+C3D_CAMERA_LENS = 500 '350 'Distance from 0, facing down negative z-axis
 
 C3D_MAX_Z_DEPTH = 8000
 
@@ -75,7 +75,7 @@ Include "Calamity3D/C3D_Background.bas"
 Include "Calamity3D/C3D_Camera.bas"
 Include "Calamity3D/C3D_Window.bas"
 
-
+ArrayFill(C3D_Mesh_Parent, -1)
 
 C3D_Camera_Matrix_T = C3D_CreateMatrix(4,4)
 C3D_Camera_Matrix_RX = C3D_CreateMatrix(4,4)

@@ -1,0 +1,33 @@
+# Created with Anim8or 1.00
+# Object "object02":
+
+mtllib floor.mtl
+
+# Shape "mesh01":
+g mesh01
+# No. points 4:
+v -30.0699 -0.05473 -30.2313
+v -30.0699 -0.05473 30.2313
+v 30.3927 -0.05473 -30.2313
+v 30.3927 -0.05473 30.2313
+
+# No. normals 5:
+vn 0 1 0
+vn 0 1 0
+vn 0 1 0
+vn 0 1 0
+vn 0 1 0
+
+# No. texture coordinates 4:
+vt 0 1
+vt 0 1
+vt 1 1
+vt 1 1
+
+# No. faces 1:
+
+usemtl material01
+
+f 2/2/3 4/4/5 3/3/4 1/1/2
+
+# End of Object "object02"
