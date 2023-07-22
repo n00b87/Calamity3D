@@ -67,6 +67,7 @@ Sub C3D_DeleteImage(c_img)
 		DeleteImage(C3D_Image[c_img])
 	End If
 	C3D_Image_Loaded[c_img] = False
+	C3D_Reverse_Image_LookUp[C3D_Image[c_img]] = -1
 End Sub
 
 
@@ -118,7 +119,7 @@ End Function
 
 Function C3D_GetFreeImageSlot()
 	img_slot = -1
-	For i = 1 to 4095 'RCBasic supports a max of 4096 images
+	For i = C3D_MAX_IMAGES to 4095 'RCBasic supports a max of 4096 images
 		If Not ( ImageExists(i) Or C3D_Reverse_Image_LookUp[i] >= 0 ) Then
 			img_slot = i
 			Exit For

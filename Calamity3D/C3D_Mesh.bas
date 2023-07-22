@@ -1313,10 +1313,11 @@ Function C3D_CreateActor(actor_type, actor_source)
 					End If
 					w = C3D_Image_Width[actor_source]
 					h = C3D_Image_Height[actor_source]
-					vert[0] = 0 : vert[1] = h : vert[2] = 0
-					vert[3] = w : vert[4] = h : vert[5] = 0
-					vert[6] = w : vert[7] = 0 : vert[8] = 0
-					vert[9] = 0 : vert[10] = 0 : vert[11] = 0
+					nw = w/2
+					vert[0] = -nw : vert[1] = h : vert[2] = 0
+					vert[3] = nw : vert[4] = h : vert[5] = 0
+					vert[6] = nw : vert[7] = 0 : vert[8] = 0
+					vert[9] = -nw : vert[10] = 0 : vert[11] = 0
 					
 					ind[0] = 0 : ind[1] = 1 : ind[2] = 2
 					ind[3] = 0 : ind[4] = 2 : ind[5] = 3

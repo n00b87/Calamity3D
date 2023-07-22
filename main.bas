@@ -331,6 +331,8 @@ End Sub
 
 
 'Load the demon sprites
+NUM_DEMONS = 5
+
 demon_img = C3D_LoadImage("Assets/demon.png")
 
 demon_frame_w = 128
@@ -341,7 +343,7 @@ Dim demon_anim_timer[5]
 Dim demon[5], demon_frame[5], demon_frame_num[5], demon_health[5]
 
 
-For i = 0 to 4
+For i = 0 to NUM_DEMONS-1
 	demon_frame[i] = C3D_GetFreeImage(300, 300)
 	demon[i] = C3D_CreateActor(C3D_ACTOR_TYPE_SPRITE, demon_frame[i])
 	mesh = C3D_GetActorMesh(demon[i])
@@ -364,7 +366,7 @@ Sub GetDemonFrame()
 	SetClearColor(0)
 	pick = C3D_PickActor(320, 240)
 	
-	For i = 0 to 4
+	For i = 0 to NUM_DEMONS-1
 		
 		If c3d_mb1 And pick = demon[i] Then
 			demon_health[i] = demon_health[i] - 1
