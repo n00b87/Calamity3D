@@ -1,19 +1,45 @@
+Calamity3D Graphics library version 1.1
+
+
 This document is divided into the following categories.
 You can CTRL-F and search for any of them to find what you are looking for.
 
-1. WINDOW
-2. RENDERING
-3. MESH
-4. ACTORS
-5. CAMERA
-6. IMAGE RESOURCE MANAGEMENT
-7. BACKGROUND
-8. COLLISION
-9. MATRIX
-10. UTILITY
-11. ENGINE INTERNAL CALCULATIONS
+1. [WINDOW]
+2. [RENDERING]
+3. [MESH]
+4. [ACTORS]
+5. [CAMERA]
+6. [IMAGE RESOURCE MANAGEMENT]
+7. [BACKGROUND]
+8. [COLLISION]
+9. [MATRIX]
+10. [UTILITY]
+11. [ENGINE INTERNAL CALCULATIONS]
 
 
+
+[GETTING STARTED]
+
+Calamity3D is a library for rendering simple 3D polygon scenes in RCBasic v3.x (v3.20 or greater is required).
+
+Here is a basic summary of how a Calamity3D program is structured:
+
+1. Initialize the library with C3D_Init() - This will open your window for rendering.
+
+2. Load a mesh - This is the 3D model you want to render ( *.obj is the only supported format )
+
+3. Load a Texture
+
+4. Apply the Texture to your mesh
+
+5. Create an actor from the mesh - Actors are objects in your 3D scene.
+
+6. Render the Scene
+
+7. Update the Window
+
+
+NOTE: The reason that the Render function and update function are separate is because there may be occasions where you want to render your scene but not show it. For most people you will want to Render and Update at the same time but you have some flexibility here.
 
 
 Here is the simplest Calamity3D program to get you started:
@@ -66,7 +92,7 @@ IMPORTANT NOTES:
 
 
 
-### WINDOW
+[WINDOW]
 
 Sub C3D_Init(title$, w, h, fullscreen, vsync)
 '
@@ -104,7 +130,7 @@ Sub C3D_UpdateGlobalParameters()
 
 
 
-### RENDERING
+[RENDERING]
 
 Sub C3D_SetRenderType(render_type)
 '	
@@ -163,7 +189,7 @@ Sub C3D_SetScreenOcclusionRange()
 
 
 
-### MESH
+[MESH]
 
 Function C3D_CreateMesh()
 '
@@ -290,7 +316,7 @@ Sub C3D_SetMeshHDDistance(mesh, distance)
 
 
 
-### ACTORS
+[ACTORS]
 
 Function C3D_CreateActor(actor_type, actor_source)
 '
@@ -491,7 +517,7 @@ Function C3D_PickActor(x, y)
 
 
 
-### CAMERA
+[CAMERA]
 
 Sub C3D_GetCameraPosition(ByRef x, ByRef y, ByRef z)
 '
@@ -596,7 +622,7 @@ Sub C3D_LookAt(cameraPos_x, cameraPos_y, cameraPos_z, objectPos_x, objectPos_y, 
 
 
 
-### IMAGE RESOURCE MANAGEMENT
+[IMAGE RESOURCE MANAGEMENT]
 
 Function C3D_LoadImage(img_file$)
 '
@@ -661,7 +687,7 @@ Sub C3D_LinkImage(c3d_img, img_slot)
 
 
 
-### BACKGROUND
+[BACKGROUND]
 
 Sub C3D_GenerateBackground(left, right, back, front, up, down)
 '
@@ -693,7 +719,7 @@ Sub C3D_ShowBackground(flag)
 
 
 
-### COLLISION
+[COLLISION]
 
 Sub C3D_AddCollisionMesh(base_mesh, collision_mesh)
 '
@@ -816,7 +842,7 @@ Sub C3D_DisableCollision(actor)
 
 
 
-## MATRIX
+[MATRIX]
 
 
 Function C3D_CreateMatrix(rows, cols)
@@ -892,7 +918,7 @@ Sub C3D_SetRotationMatrix(mat, axis, angle)
 
 
 
-### UTILITY
+[UTILITY]
 
 Sub C3D_RotateVertex2D(pt_x, pt_y, center_x, center_y, angleDeg, ByRef x, Byref y)
 '
@@ -1147,7 +1173,7 @@ function C3D_LinePlaneIntersection(ByRef line_point, ByRef line_direction, ByRef
 
 
 
-### ENGINE INTERNAL CALCULATIONS
+[ENGINE INTERNAL CALCULATIONS]
 
 Function C3D_ClipTriangle(ByRef tri, ByRef uv, ByRef clipped_tri, ByRef clipped_uv)
 '
