@@ -42,7 +42,7 @@ C3D_SetActorPosition(cam_obj, 400, 100, 1870)
 'C3D_SetCameraRotation(0, 240, 0)
 
 C3D_EnableCollision(cam_obj)
-C3D_SetCollisionParameters(cam_obj, 0, -9, 0, 0, 9, 0, 80)
+C3D_SetCollisionParameters(cam_obj, 0, -9, 0, 0, 9, 0, 50)
 C3D_SetCollisionType(cam_obj, C3D_COLLISION_TYPE_DYNAMIC)
 C3D_SetActorVisible(cam_obj, false)
 
@@ -415,10 +415,11 @@ While Not Key(K_ESCAPE)
 	
 	Canvas(0)
 	SetColor(RGBA(255,255,255,128))
-	RectFill(5, 5, 100, 60)
+	RectFill(5, 5, 150, 60)
 	SetColor(RGB(0, 0, 0))
 	DrawText("FPS: " + Str(FPS()), 10, 10)
 	DrawText("PICK: " + Str(C3D_PickActor(320,240)), 10, 30)
+	DrawText("Face Count: " + Str(dbg_face_count), 10, 50)
 	
 	If key(k_m) Then
 		dim cx, cy, cz

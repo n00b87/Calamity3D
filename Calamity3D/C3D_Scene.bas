@@ -627,6 +627,8 @@ Sub C3D_RenderScene()
 	c3d_index_count = 0
 	c3d_vertex_count = 0
 	
+	't = timer()
+	
 	For z = (C3D_MAX_Z_DEPTH-1) to 1 step -1
 		If C3D_ZSort_Faces_Count[z] > 0 Then
 			sortJoinColumn(C3D_ZSort_Faces_Distance, C3D_ZSort_Faces, z, C3D_ZSort_Faces_Count[z], C3D_MAX_SCENE_FACES)
@@ -654,6 +656,8 @@ Sub C3D_RenderScene()
 			Next
 		End If
 	Next
+	
+	'if key(k_t) then : print (timer()-t) : end if
 	
 	if C3D_Render_Type = C3D_RENDER_TYPE_WIREFRAME then
 		if c3d_index_count > 0 then

@@ -1551,6 +1551,8 @@ End Function
 
 Dim C3D_Actor_InViewRange[C3D_MAX_ACTORS]
 
+dbg_face_count = 0
+
 Sub C3D_ComputeVisibleFaces()
 	C3D_Visible_Init = False
 	z_avg = 0
@@ -1569,6 +1571,8 @@ Sub C3D_ComputeVisibleFaces()
 	div = 0
 	div_row = 0
 	div_col = 0
+	
+	dbg_face_count = 0
 	
 	For actor = 0 to C3D_MAX_ACTORS-1
 		
@@ -1591,6 +1595,7 @@ Sub C3D_ComputeVisibleFaces()
 			'End If
 			
 			If face_min_z >= 0 And face_min_z < C3D_MAX_Z_DEPTH Then
+				dbg_face_count = dbg_face_count + 1
 				C3D_Actor_inSite[actor] = True
 				C3D_Actor_Face_inSite[actor, C3D_Actor_Face_inSite_Count[actor]] = face
 				C3D_Actor_Face_inSite_Count[actor] = C3D_Actor_Face_inSite_Count[actor] + 1
