@@ -446,6 +446,142 @@ Function C3D_LoadMesh(obj_file$)
 End Function
 
 
+Function C3D_LoadMeshFromString(obj_contents$)
+	
+	mesh_num = C3D_CreateMesh()
+	
+	If mesh_num = -1 Then
+		Return -1
+	End If
+	
+	C3D_Mesh_HasCollisionMesh[mesh_num] = False
+	
+	Dim min_x, min_y, min_z, max_x, max_y, max_z, min_max_init
+	
+	min_max_init = False
+	
+	
+	v_offset = 0
+	t_offset = 0
+	set_offset = false
+	'Print "MESH LOAD"
+	
+	obj_contents$ = obj_contents$ + "\n"
+	
+	While obj_contents$ <> ""
+		nl = FindFirstOf("\n", obj_contents$)
+		f_line$ = Replace$(Left$(obj_contents$, nl), "\n", "")
+		obj_contents$ = Mid$(obj_contents$, nl+1, Len(obj_contents$))
+		'print "dbg: "; f_line
+		
+		line_type$ = Left(f_line$, FindFirstOf(" ", f_line$))
+		
+		Select Case line_type$
+		Case "v"
+			
+			if set_offset then
+				v_offset = v_offset + C3D_Mesh_Vertex_Count[mesh_num]
+				t_offset = t_offset + C3D_Mesh_TCoord_Count[mesh_num]
+				set_offset = false
+			end if
+			
+			Dim vec[3]
+			v_count = C3D_GetVector(3, Replace(f_line$, "v", ""), " ", vec)
+			mesh_vert_num = C3D_Mesh_Vertex_Count[mesh_num]
+			C3D_Mesh_TMP_Vertex[mesh_vert_num, 0] = vec[0]
+			C3D_Mesh_TMP_Vertex[mesh_vert_num, 1] = vec[1]
+			C3D_Mesh_TMP_Vertex[mesh_vert_num, 2] = vec[2]
+			C3D_Mesh_TMP_Vertex[mesh_vert_num, 3] = 1.0
+			C3D_Mesh_Vertex_Count[mesh_num] = mesh_vert_num + 1
+			
+			
+			If Not min_max_init Then
+				min_max_init = True
+				min_x = vec[0]
+				min_y = vec[1]
+				min_z = vec[2]
+				max_x = vec[0]
+				max_y = vec[1]
+				max_z = vec[2]
+			Else
+				min_x = Min(min_x, vec[0])
+				min_y = Min(min_y, vec[1])
+				min_z = Min(min_z, vec[2])
+				max_x = Max(max_x, vec[0])
+				max_y = Max(max_y, vec[1])
+				max_z = Max(max_z, vec[2])
+			End If
+			'Print "Vertex["; v_count ;"]  "; vec[0]; ", "; vec[1]; ", "; vec[2]
+		Case "vt"
+			Dim tc[2]
+			t_count = C3D_GetVector(2, Replace(f_line$, "vt", ""), " ", tc)
+			mesh_tc_num = C3D_Mesh_TCoord_Count[mesh_num]
+			C3D_Mesh_TCoord[mesh_num, mesh_tc_num, 0] = tc[0]
+			C3D_Mesh_TCoord[mesh_num, mesh_tc_num, 1] = 1-tc[1]
+			C3D_Mesh_TCoord_Count[mesh_num] = mesh_tc_num + 1
+			'Print "TexCoord: ";  tc[0]; ", "; tc[1]
+			
+		Case "f"
+			Dim face$[32]
+			f_count = Split(Replace(f_line$, "f", ""), " ", face)
+			mesh_face_num = C3D_Mesh_Face_Count[mesh_num]
+			'Print "Face["; f_count; "]"
+			
+			C3D_Mesh_Face_Vertex_Count[mesh_num, mesh_face_num] = f_count
+			C3D_Mesh_Face_TCoord_Count[mesh_num, mesh_face_num] = f_count
+			
+			Dim f_arg[3]
+			
+			For i = 0 to f_count-1
+				'Print "-- Point ["; i; "] --"
+				'Print "FDATA = "; face[i]
+				f_arg_count = C3D_GetVector(3, face$[i], "/", f_arg)
+				For j = 0 to f_arg_count-1
+					Select Case j
+					Case 0: C3D_Mesh_Face_Vertex[mesh_num, mesh_face_num, i] = v_offset + (f_arg[j]-1) ': Print " Vertex = ";
+					Case 1: C3D_Mesh_Face_TCoord[mesh_num, mesh_face_num, i] = t_offset + (f_arg[j]-1) ': Print ", UV = ";
+					Default : Exit For
+					End Select
+					
+					'Print f_arg[j];
+				Next
+				'Print ""
+			Next
+			
+			C3D_Mesh_Face_Count[mesh_num] = mesh_face_num + 1
+			
+			'Print "offset = ";v_offset;", ";t_offset
+			'Print ""
+			
+		End Select
+		
+	Wend
+	
+	'Print "MESH END"
+	C3D_Mesh_Origin[mesh_num, 0] = (min_x + max_x)/2
+	C3D_Mesh_Origin[mesh_num, 1] = (min_y + max_y)/2
+	C3D_Mesh_Origin[mesh_num, 2] = (min_z + max_z)/2
+	
+	C3D_Mesh_MinX[mesh_num] = min_x
+	C3D_Mesh_MinZ[mesh_num] = min_z
+	C3D_Mesh_MaxX[mesh_num] = max_x
+	C3D_Mesh_MaxZ[mesh_num] = max_z
+	
+	r = abs(max_x - min_x)
+	r = Max(r, abs(max_y - min_y))
+	r = Max(r, abs(max_z - min_z))
+	
+	C3D_Mesh_Radius[mesh_num] = r+1
+	
+	tmp_matrix = C3D_CreateMatrix(2,2)
+	MatrixFromBuffer(tmp_matrix, C3D_Mesh_Vertex_Count[mesh_num], 4, C3D_Mesh_TMP_Vertex)
+	TransposeMatrix(tmp_matrix, C3D_Mesh_Vertex_Matrix[mesh_num])
+	C3D_DeleteMatrix(tmp_matrix)
+	
+	Return mesh_num
+End Function
+
+
 Function C3D_DefineMesh(m_vert_count, ByRef m_vert, m_index_count, ByRef m_ind, m_tex_count, ByRef m_tex)
 	mesh_num = C3D_CreateMesh()
 	C3D_Mesh_HasCollisionMesh[mesh_num] = False
@@ -562,7 +698,7 @@ End Function
 
 
 
-C3D_MAX_ACTORS = 100
+C3D_MAX_ACTORS = 200
 
 Dim actor_distance[ C3D_MAX_ACTORS ]
 Dim actor_min_screen_x[ C3D_MAX_ACTORS ]
@@ -597,11 +733,11 @@ C3D_ACTOR_MATRIX_RZ = 4
 C3D_ACTOR_MATRIX_COLLIDE_ORIGIN = 5
 C3D_ACTOR_MATRIX_COLLIDE_DIRECTION = 6
 
-C3D_MAX_SCENE_FACES = 4000
+
 Dim C3D_Visible_Faces[C3D_MAX_SCENE_FACES, 2] '0 is actor, 1 is face
-Dim C3D_ZSort_Faces[C3D_MAX_Z_DEPTH, C3D_MAX_SCENE_FACES] 'reference item in C3D_Visible_Faces, 500 is max Z depth (I will probably change it later)
-Dim C3D_ZSort_Faces_Distance[C3D_MAX_Z_DEPTH, C3D_MAX_SCENE_FACES]
-Dim C3D_ZSort_Faces_Count[C3D_MAX_Z_DEPTH]
+Dim C3D_ZSort_Faces[C3D_MAX_ZSORT_DEPTH, C3D_MAX_SCENE_FACES] 'reference item in C3D_Visible_Faces, 500 is max Z depth (I will probably change it later)
+Dim C3D_ZSort_Faces_Distance[C3D_MAX_ZSORT_DEPTH, C3D_MAX_SCENE_FACES]
+Dim C3D_ZSort_Faces_Count[C3D_MAX_ZSORT_DEPTH]
 Dim C3D_Actor_Face_ZOrder[C3D_MAX_ACTORS, C3D_MAX_FACES]
 
 
@@ -669,7 +805,7 @@ Sub C3D_ClearStageGeometry()
 	C3D_Stage_Geometry_Count = 0
 End Sub
 
-Sub C3D_AddStageGeometry(type, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4) 'MUST BE SPECIFIED CLOCKWISE
+Function C3D_AddStageGeometry(type, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4) 'MUST BE SPECIFIED CLOCKWISE
 	C3D_Stage_Geometry[C3D_Stage_Geometry_Count, 0] = type
 	
 	min_x = min(min(x1, x2), min(x3, x4))
@@ -705,8 +841,11 @@ Sub C3D_AddStageGeometry(type, x1, y1, z1, x2, y2, z2, x3, y3, z3, x4, y4, z4) '
 	C3D_Stage_Geometry[C3D_Stage_Geometry_Count, 11] = y4
 	C3D_Stage_Geometry[C3D_Stage_Geometry_Count, 12] = z4
 	
+	ret_val = C3D_Stage_Geometry_Count
 	C3D_Stage_Geometry_Count = C3D_Stage_Geometry_Count + 1
-End Sub
+	
+	Return ret_val
+End Function
 
 
 Sub C3D_RefreshActorMatrix(actor)
@@ -1258,6 +1397,38 @@ Sub C3D_DisableCollision(actor)
 	C3D_Actor_Collision_Enabled[actor] = False
 End Sub
 
+Function C3D_ActorOnFloor(actor)
+	If C3D_Actor_Stage_Collision_Count[actor] <= 0 Then
+		Return False
+	End If
+	
+	For i = 0 to C3D_Actor_Stage_Collision_Count[actor]-1
+		geo = C3D_Actor_Stage_Collision[actor, i]
+		type = C3D_Stage_Geometry[geo, 0]
+		If type = C3D_STAGE_GEOMETRY_TYPE_FLOOR Then
+			Return True
+		End IF
+	Next
+	Return False
+End Function
+
+
+Function C3D_ActorStageCollisionCount(actor)
+	Return C3D_Actor_Stage_Collision_Count[actor]
+End Function
+
+
+Function C3D_GetActorStageCollision(actor, collision_index, ByRef geo, ByRef type)
+	If collision_index >= C3D_Actor_Stage_Collision_Count[actor] Then
+		Return False
+	End If
+	
+	geo = C3D_Actor_Stage_Collision[actor, collision_index]
+	type = C3D_Stage_Geometry[geo, 0]
+	
+	Return True
+End Function
+
 
 Function C3D_CreateActor(actor_type, actor_source)
 	For i = 0 to C3D_MAX_ACTORS-1
@@ -1271,6 +1442,8 @@ Function C3D_CreateActor(actor_type, actor_source)
 			
 			C3D_Actor_CamDistance[i] = 0
 			C3D_Actor_isPickable[i] = False
+			
+			C3D_Actor_Collision_Enabled[i] = False
 			
 			'Defaults
 			C3D_Actor_Position[i, 0] = 0
@@ -1449,9 +1622,9 @@ Sub C3D_SetActorRotation(actor, x, y, z)
 End Sub
 
 Sub C3D_GetActorRotation(actor, ByRef x, ByRef y, ByRef z)
-	x = C3D_Actor_Rotation[actor, 0] = x
-	y = C3D_Actor_Rotation[actor, 1] = y
-	z = C3D_Actor_Rotation[actor, 2] = z
+	x = C3D_Actor_Rotation[actor, 0]
+	y = C3D_Actor_Rotation[actor, 1]
+	z = C3D_Actor_Rotation[actor, 2]
 End Sub
 
 Sub C3D_RotateActor(actor, x, y, z)
@@ -1513,6 +1686,18 @@ Function SetFaceZ(actor, face_num, ByRef z_avg)
 	in_zx_range = false
 	in_zy_range = false
 	
+	face_min_x = 0
+	face_max_x = 0
+	
+	face_min_y = 0
+	face_max_y = 0
+	
+	zx_min_bound = false
+	zx_max_bound = false
+	
+	zy_min_bound = false
+	zy_max_bound = false
+	
 	For i = 0 to vcount-1
 		vz[i] = MatrixValue(C3D_Actor_Matrix[actor, 0], 2, C3D_Mesh_Face_Vertex[mesh, face_num, i])
 		vx = MatrixValue(C3D_Actor_Matrix[actor, 0], 0, C3D_Mesh_Face_Vertex[mesh, face_num, i])
@@ -1523,18 +1708,36 @@ Function SetFaceZ(actor, face_num, ByRef z_avg)
 		If distance >= 0 And distance < C3D_MAX_Z_DEPTH Then
 			in_zx_range = in_zx_range Or (vx >= C3D_ZX_Range[distance, 0] And vx < C3D_ZX_Range[distance, 1])
 			in_zy_range = in_zy_range Or (vy >= C3D_ZY_Range[distance, 0] And vy < C3D_ZY_Range[distance, 1])			
+			
+			zx_min_bound = zx_min_bound Or (vx < C3D_ZX_Range[distance, 0])
+			zx_max_bound = zx_max_bound Or (vx >= C3D_ZX_Range[distance, 1])
+			
+			zy_min_bound = zy_min_bound Or (vy < C3D_ZY_Range[distance, 0])
+			zy_max_bound = zy_max_bound Or (vy >= C3D_ZY_Range[distance, 1])
 		ElseIf vz[i] >= 0 And vz[i] < C3D_MAX_Z_DEPTH Then
 			in_zx_range = in_zx_range Or (vx >= C3D_ZX_Range[vz[i], 0] And vx < C3D_ZX_Range[vz[i], 1])
 			in_zy_range = in_zy_range Or (vy >= C3D_ZY_Range[vz[i], 0] And vy < C3D_ZY_Range[vz[i], 1])
+			
+			zx_min_bound = zx_min_bound Or (vx < C3D_ZX_Range[i, 0])
+			zx_max_bound = zx_max_bound Or (vx >= C3D_ZX_Range[i, 1])
+			
+			zy_min_bound = zy_min_bound Or (vy < C3D_ZY_Range[i, 0])
+			zy_max_bound = zy_max_bound Or (vy >= C3D_ZY_Range[i, 1])
 		End If
 		
 		face_min_z = Min(face_min_z, vz[i])
 		face_max_z = Max(face_max_z, vz[i])
+		
 	Next
+	
+	in_zx_range = in_zx_range Or (zx_min_bound And zx_max_bound)
+	in_zy_range = in_zy_range Or (zy_min_bound And zy_max_bound)
 	
 	If (Not in_zx_range) Or (Not in_zy_range) Then
 		return -1
 	End If
+	
+	'if key(k_i) and actor = 1 then : print "face = ";face_num : end if
 	
 	z_avg = (face_min_z+face_max_z) /2 'This is some bullshit math to order the faces with out checking if they are obscured
 	
@@ -1596,6 +1799,7 @@ Sub C3D_ComputeVisibleFaces()
 			
 			If face_min_z >= 0 And face_min_z < C3D_MAX_Z_DEPTH Then
 				dbg_face_count = dbg_face_count + 1
+				face_min_z = face_min_z / C3D_ZSORT_RATIO
 				C3D_Actor_inSite[actor] = True
 				C3D_Actor_Face_inSite[actor, C3D_Actor_Face_inSite_Count[actor]] = face
 				C3D_Actor_Face_inSite_Count[actor] = C3D_Actor_Face_inSite_Count[actor] + 1
@@ -1641,6 +1845,45 @@ Sub C3D_ComputeVisibleFaces()
 End Sub
 
 
+Function C3D_ComputeActorInView(actor)
+	min_x = C3D_ZX_Range[C3D_MAX_Z_DEPTH-1, 0]
+	max_x = C3D_ZX_Range[C3D_MAX_Z_DEPTH-1, 1]
+	
+	r = C3D_Mesh_Radius[ C3D_Actor_Source[actor] ]
+	max_range = C3D_MAX_Z_DEPTH + r
+	
+	q1_x = min_x-r
+	q1_z = r
+	
+	q2_x = min_x-r
+	q2_z = -max_range
+	
+	q3_x = max_x+r
+	q3_z = -max_range
+	
+	q4_x = max_x+r
+	q4_z = r
+	
+	mesh = C3D_Actor_Source[actor]
+	
+	px = (C3D_ActorPositionX(actor) + C3D_Mesh_Origin[mesh, 0]) - C3D_Camera_Position[0]
+	pz = (C3D_ActorPositionZ(actor) + C3D_Mesh_Origin[mesh, 2]) - C3D_Camera_Position[2]
+	
+	C3D_RotateVertex2D(px, pz, 0, 0, C3D_Camera_Rotation[1], px, pz)
+	
+	Return C3D_PointInQuad(px, pz, q1_x, q1_z, q2_x, q2_z, q3_x, q3_z, q4_x, q4_z)
+
+	'cam_left_x = -1
+	'cam_left_z = 0
+	'cam_right_x = 1
+	'cam_right_z = 0
+	
+	'C3D_MovePointFromOrigin(C3D_Camera_Rotation[1], C3D_Camera_Position[0], C3D_Camera_Position[2], cam_left_x, cam_left_z)
+	'C3D_MovePointFromOrigin(C3D_Camera_Rotation[1], C3D_Camera_Position[0], C3D_Camera_Position[2], cam_right_x, cam_right_z)
+	
+End Function
+
+
 Function C3D_UpdateActorInViewRange(actor)
 	If Not C3D_Actor_Active[actor] Then
 		Return False
@@ -1658,7 +1901,7 @@ Function C3D_UpdateActorInViewRange(actor)
 	If C3D_Actor_CamDistance[actor] > C3D_MAX_Z_DEPTH+50 Then
 		C3D_Actor_InViewRange[actor] = False
 	Else
-		C3D_Actor_InViewRange[actor] = True
+		C3D_Actor_InViewRange[actor] = C3D_ComputeActorInView(actor)
 	End If
 	
 	'if key(k_i) and actor = 1 then

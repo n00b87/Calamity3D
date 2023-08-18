@@ -2,7 +2,10 @@ Include Once
 
 C3D_CAMERA_LENS = 500 '350 'Distance from 0, facing down negative z-axis
 
-C3D_MAX_Z_DEPTH = 8000
+C3D_MAX_Z_DEPTH = 8000  'Draw Distance
+C3D_MAX_SCENE_FACES = 2000  'Max Polygons that can be rendered in a scene
+C3D_ZSORT_RATIO = 10  'A factor to reduce depth buffer accuracy by (1 is most accurate but requires more RAM. 10 seems to be a good compromise)
+C3D_MAX_ZSORT_DEPTH = C3D_MAX_Z_DEPTH/C3D_ZSORT_RATIO
 
 C3D_LLOD_DEPTH = 1000
 C3D_MAX_LOD_DEPTH = 7000
@@ -65,6 +68,21 @@ Sub C3D_UpdateGlobalParameters()
 	C3D_SCREEN_GRAPH_OFFSET_Y = C3D_SCREEN_HEIGHT
 End Sub
 
+'---FPS CAMERA GLOBALS--------------
+c3d_mouse_fps_flag = False
+c3d_mouse_visible = MouseIsVisible()
+
+cam_mesh = -1
+cam_obj = -1
+cam_height = 90
+
+cam_rot_speed = 2
+cam_speed = 48
+sensitivity = 0.5
+
+'-----------------------------------
+
+Include "Calamity3D/strings.bas"
 Include "Calamity3D/C3D_Utility.bas"
 Include "Calamity3D/C3D_Collision.bas"
 Include "Calamity3D/C3D_Scene.bas"
@@ -73,7 +91,29 @@ Include "Calamity3D/C3D_Image.bas"
 Include "Calamity3D/C3D_Background.bas"
 'Include "Calamity3D/C3D_Sprite.bas"  ' For now, C3D_ACTOR_TYPE_SPRITE can just be set manually to use 2D sprites
 Include "Calamity3D/C3D_Camera.bas"
+Include "Calamity3D/C3D_FPSCamera.bas"
 Include "Calamity3D/C3D_Window.bas"
+
+
+Sub C3D_RenderScene()
+	If c3d_mouse_fps_flag Then
+		C3D_FPSControl()
+	End If
+	
+	C3D_RenderSceneGeometry()
+End Sub
+
+
+Sub C3D_DeleteAll()
+	C3D_Stage_Geometry_Count = 0
+	ArrayFill(C3D_Actor_Active, False)
+	ArrayFill(C3D_Mesh_Active, False)
+	
+	For i = 0 to C3D_MAX_IMAGES-1
+		C3D_DeleteImage(i)
+	Next
+End Sub
+
 
 ArrayFill(C3D_Mesh_Parent, -1)
 

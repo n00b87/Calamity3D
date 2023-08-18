@@ -86,6 +86,19 @@ Sub C3D_MovePointFromOrigin(angle, origin_x, origin_y, ByRef x, ByRef y)
 End Sub
 
 
+Sub C3D_MoveDistanceFromOrigin(angle, origin_x, origin_y, distance, ByRef x, ByRef y)
+	angle = Radians(angle)
+	
+	'print "distance = ";distance
+	
+	v_sin = Sin(angle) * distance
+	v_cos = Cos(angle) * distance
+	
+	x = origin_x + v_cos
+	y = origin_y + v_sin
+End Sub
+
+
 Function n_ATan2(y, x)
 	'"""Returns the arctangent of y/x in radians."""
 	If x > 0 Then

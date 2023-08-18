@@ -17,3 +17,4 @@ SOURCE_REL:Calamity3D/C3D_Utility.bas
 SOURCE_REL:Calamity3D/C3D_Window.bas
 SOURCE_REL:Calamity3D/Calamity3D.bas
 SOURCE_REL:Calamity3D/strings.bas
+SOURCE_REL:Calamity3D/C3D_FPSCamera.bas

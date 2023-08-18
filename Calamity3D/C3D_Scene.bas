@@ -282,8 +282,9 @@ Sub C3D_DrawMeshFace(actor, face)
 			For i = 0 to clip-1
 				distance = C3D_CAMERA_LENS - clipped_tri[tri_index+2]
 				C3D_Ternary(distance<=0, distance, 1, distance)
-				c3d_vertex[ c3d_vi, 0 ] = (C3D_CAMERA_LENS * clipped_tri[tri_index] / distance) + C3D_SCREEN_GRAPH_OFFSET_X
-				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * clipped_tri[tri_index+1] / distance)
+				cld = (C3D_CAMERA_LENS / distance)
+				c3d_vertex[ c3d_vi, 0 ] = (cld * clipped_tri[tri_index]) + C3D_SCREEN_GRAPH_OFFSET_X
+				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (cld * clipped_tri[tri_index+1])
 				c3d_vertex[ c3d_vi, 2 ] = 255
 				c3d_vertex[ c3d_vi, 3 ] = 255
 				c3d_vertex[ c3d_vi, 4 ] = 255
@@ -309,8 +310,9 @@ Sub C3D_DrawMeshFace(actor, face)
 			For i = 0 to 2
 				distance = C3D_CAMERA_LENS - tri[tri_index+2]
 				C3D_Ternary(distance<=0, distance, 1, distance)
-				c3d_vertex[ c3d_vi, 0 ] = (C3D_CAMERA_LENS * tri[tri_index] / distance) + C3D_SCREEN_GRAPH_OFFSET_X
-				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * tri[tri_index+1] / distance)
+				cld = (C3D_CAMERA_LENS / distance)
+				c3d_vertex[ c3d_vi, 0 ] = (cld * tri[tri_index]) + C3D_SCREEN_GRAPH_OFFSET_X
+				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (cld * tri[tri_index+1])
 				c3d_vertex[ c3d_vi, 2 ] = 255
 				c3d_vertex[ c3d_vi, 3 ] = 255
 				c3d_vertex[ c3d_vi, 4 ] = 255
@@ -347,8 +349,9 @@ Sub C3D_DrawMeshFace(actor, face)
 			For i = 0 to clip-1
 				distance = C3D_CAMERA_LENS - clipped_tri[tri_index+2]
 				C3D_Ternary(distance<=0, distance, 1, distance)
-				c3d_vertex[ c3d_vi, 0 ] = (C3D_CAMERA_LENS * clipped_tri[tri_index] / distance) + C3D_SCREEN_GRAPH_OFFSET_X
-				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * clipped_tri[tri_index+1] / distance)
+				cld = (C3D_CAMERA_LENS / distance)
+				c3d_vertex[ c3d_vi, 0 ] = (cld * clipped_tri[tri_index]) + C3D_SCREEN_GRAPH_OFFSET_X
+				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (cld * clipped_tri[tri_index+1])
 				c3d_vertex[ c3d_vi, 2 ] = 255
 				c3d_vertex[ c3d_vi, 3 ] = 255
 				c3d_vertex[ c3d_vi, 4 ] = 255
@@ -374,8 +377,9 @@ Sub C3D_DrawMeshFace(actor, face)
 			For i = 0 to 2
 				distance = C3D_CAMERA_LENS - tri[tri_index+2]
 				C3D_Ternary(distance<=0, distance, 1, distance)
-				c3d_vertex[ c3d_vi, 0 ] = (C3D_CAMERA_LENS * tri[tri_index] / distance) + C3D_SCREEN_GRAPH_OFFSET_X
-				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * tri[tri_index+1] / distance)
+				cld = (C3D_CAMERA_LENS / distance)
+				c3d_vertex[ c3d_vi, 0 ] = (cld * tri[tri_index]) + C3D_SCREEN_GRAPH_OFFSET_X
+				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (cld * tri[tri_index+1])
 				c3d_vertex[ c3d_vi, 2 ] = 255
 				c3d_vertex[ c3d_vi, 3 ] = 255
 				c3d_vertex[ c3d_vi, 4 ] = 255
@@ -414,8 +418,9 @@ Sub C3D_DrawMeshFace(actor, face)
 			For i = 0 to clip-1
 				distance = C3D_CAMERA_LENS - clipped_tri[tri_index+2]
 				C3D_Ternary(distance<=0, distance, 1, distance)
-				c3d_vertex[ c3d_vi, 0 ] = (C3D_CAMERA_LENS * clipped_tri[tri_index] / distance) + C3D_SCREEN_GRAPH_OFFSET_X
-				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * clipped_tri[tri_index+1] / distance)
+				cld = (C3D_CAMERA_LENS / distance)
+				c3d_vertex[ c3d_vi, 0 ] = (cld * clipped_tri[tri_index]) + C3D_SCREEN_GRAPH_OFFSET_X
+				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (cld * clipped_tri[tri_index+1])
 				c3d_vertex[ c3d_vi, 2 ] = 255
 				c3d_vertex[ c3d_vi, 3 ] = 255
 				c3d_vertex[ c3d_vi, 4 ] = 255
@@ -443,8 +448,9 @@ Sub C3D_DrawMeshFace(actor, face)
 			For i = 0 to 2
 				distance = C3D_CAMERA_LENS - tri[tri_index+2]
 				C3D_Ternary(distance<=0, distance, 1, distance)
-				c3d_vertex[ c3d_vi, 0 ] = (C3D_CAMERA_LENS * tri[tri_index] / distance) + C3D_SCREEN_GRAPH_OFFSET_X
-				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * tri[tri_index+1] / distance)
+				cld = (C3D_CAMERA_LENS / distance)
+				c3d_vertex[ c3d_vi, 0 ] = (cld * tri[tri_index]) + C3D_SCREEN_GRAPH_OFFSET_X
+				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (cld * tri[tri_index+1])
 				c3d_vertex[ c3d_vi, 2 ] = 255
 				c3d_vertex[ c3d_vi, 3 ] = 255
 				c3d_vertex[ c3d_vi, 4 ] = 255
@@ -579,7 +585,7 @@ C3D_Rendered_Faces_Count = 0
 
 dbg = 0
 
-Sub C3D_RenderScene()
+Sub C3D_RenderSceneGeometry()
 	
 	ArrayFill(actor_distance, 9999)
 	ArrayFill(actor_min_screen_x, 9999)
@@ -627,9 +633,9 @@ Sub C3D_RenderScene()
 	c3d_index_count = 0
 	c3d_vertex_count = 0
 	
-	't = timer()
+	t = timer()
 	
-	For z = (C3D_MAX_Z_DEPTH-1) to 1 step -1
+	For z = (C3D_MAX_ZSORT_DEPTH-1) to 1 step -1
 		If C3D_ZSort_Faces_Count[z] > 0 Then
 			sortJoinColumn(C3D_ZSort_Faces_Distance, C3D_ZSort_Faces, z, C3D_ZSort_Faces_Count[z], C3D_MAX_SCENE_FACES)
 			For i = 0 to C3D_ZSort_Faces_Count[z]-1

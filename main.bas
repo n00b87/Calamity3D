@@ -7,6 +7,8 @@ C3D_CLEAR_COLOR = RGB(153,217,234)
 'Initialize Engine and open a window
 C3D_Init("test", 640, 480, 0, 1)
 
+'C3D_SetFrameLimit(60)
+
 'Opening Canvas 0 and setting it on top of the rendered display
 'NOTE: Canvas 0 is where the weapon sprite will be drawn
 CanvasOpen(0, 640, 480, 0, 0, 640, 480, 1)
@@ -28,65 +30,27 @@ C3D_GenerateBackground(lf, rt, bk, ft, up, dn)
 C3D_ShowBackground(true)
 
 
-'C3D_DeleteImage(lf)
-'C3D_DeleteImage(rt)
-'C3D_DeleteImage(bk)
-'C3D_DeleteImage(ft)
-'C3D_DeleteImage(up)
-'C3D_DeleteImage(dn)
-
-
-cam_mesh = C3D_LoadMesh("Assets/cam_cd.obj")
-cam_obj = C3D_CreateActor(C3D_ACTOR_TYPE_MESH, cam_mesh)
-C3D_SetActorPosition(cam_obj, 400, 100, 1870)
-'C3D_SetCameraRotation(0, 240, 0)
-
-C3D_EnableCollision(cam_obj)
-C3D_SetCollisionParameters(cam_obj, 0, -9, 0, 0, 9, 0, 50)
-C3D_SetCollisionType(cam_obj, C3D_COLLISION_TYPE_DYNAMIC)
-C3D_SetActorVisible(cam_obj, false)
-
-
-cam_height = 90
-
-Sub MoveFPSCameraActor(actor, x, y, z)
-	dx = C3D_Camera_Position[0]
-	dy = C3D_Camera_Position[1]
-	dz = C3D_Camera_Position[2]
-	
-	crx = C3D_Camera_Rotation[0]
-	cry = C3D_Camera_Rotation[1]
-	crz = C3D_Camera_Rotation[2]
-	
-	Dim n
-	
-	If y Then
-		C3D_RotateVertex2D(dx, dy, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Y, -1*crz, n, dy)
-		C3D_RotateVertex2D(dx, dy+y, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Y, crz, n, dy)
-	End If
-	
-	If x Or z Then
-		C3D_RotateVertex2D(dz, dx, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Z, -1*cry, dz, dx)
-		C3D_RotateVertex2D(dz+z, dx+x, C3D_CAMERA_CENTER_X, C3D_CAMERA_CENTER_Z, cry, dz, dx)
-	End If
-	
-	delta_x = dx - C3D_Camera_Position[0]
-	delta_y = dy - C3D_Camera_Position[1]
-	delta_z = dz - C3D_Camera_Position[2]
-	
-	C3D_MoveActor(actor, delta_x, delta_y, delta_z)
-	C3D_SetCameraPosition(C3D_ActorPositionX(actor), C3D_ActorPositionY(actor)+cam_height, C3D_ActorPositionZ(actor))
-End Sub
+C3D_DeleteImage(lf)
+C3D_DeleteImage(rt)
+C3D_DeleteImage(bk)
+C3D_DeleteImage(ft)
+C3D_DeleteImage(up)
+C3D_DeleteImage(dn)
 
 
 'C3D_SetRenderType(C3D_RENDER_TYPE_WIREFRAME)
 
 
-terrain_mesh = C3D_LoadMesh("Assets/terrain2.obj")
+'terrain_mesh = C3D_LoadMesh("Assets/terrain2.obj")
+terrain_mesh = C3D_LoadMesh("Assets/large_level.obj")
 terrain_cd = C3D_LoadMesh("Assets/terrain_cd.obj")
 C3D_AddStageGeometryFromMesh(terrain_cd)
 
-terrain_texture = C3D_LoadImage("Assets/terrain1.png")
+'terrain_texture = C3D_LoadImage("Assets/terrain1.png")
+terrain_texture = C3D_LoadImage("Assets/plane1.bmp")
+
+C3D_SetMeshTexture(terrain_mesh, terrain_texture)
+'C3D_CreateActor(C3D_ACTOR_TYPE_MESH, terrain_mesh)
 
 x1 = -15790 : y1 = 20 : z1 = -15694
 x2 = 16383  : y2 = 20 : z2 = -15694
@@ -97,8 +61,8 @@ C3D_AddStageGeometry(C3D_STAGE_GEOMETRY_TYPE_FLOOR, x1, y1, z1, x2, y2, z2, x3, 
 
 
 c = C3D_CutMesh(terrain_mesh, 4000)
-Print "Cuts = "; c
-
+'Print "Cuts = "; c
+'
 For i = 0 to C3D_Mesh_Cut_Count-1
 	C3D_SetMeshTexture(C3D_Mesh_Cuts[i], terrain_texture)
 	C3D_CreateActor(C3D_ACTOR_TYPE_MESH, C3D_Mesh_Cuts[i])
@@ -139,61 +103,10 @@ tree = C3D_CreateActor(C3D_ACTOR_TYPE_MESH, tree_mesh)
 C3D_SetActorPosition(tree, -700, 0, 2400)
 
 
-'FPS CAMERA PROPERTIES
-cam_rot_speed = 2
-cam_speed = 48
-sensitivity = 0.5
-
 'GRAVITY (effects how fast the camera falls after the peak of the jump)
 gravity = 20
 jump_speed = 36
 max_jump_force = 10
-
-
-Dim c3d_mx, c3d_my, c3d_prev_mx, c3d_prev_my, c3d_mb1, c3d_mb2, c3d_mb3
-
-Sub MouseDelta_FPS(ByRef dx, ByRef dy)
-	move_mouse = false
-	
-	c3d_prev_mx = c3d_mx
-	c3d_prev_my = c3d_my
-	
-	GetMouse(c3d_mx, c3d_my, c3d_mb1, c3d_mb2, c3d_mb3)
-	
-	w = C3D_SCREEN_WIDTH-1
-	h = C3D_SCREEN_HEIGHT-1
-	
-	If c3d_mx <= 0 And c3d_prev_mx > 0 Then
-		c3d_mx = w
-		move_mouse = True
-	ElseIf c3d_mx >= w And c3d_prev_mx < w Then
-		c3d_mx = 0
-		move_mouse = True
-	End If
-    
-  If c3d_my <= 0 And c3d_prev_my > 0 Then
-		c3d_my = h
-		move_mouse = True
-	ElseIf c3d_my >= h And c3d_prev_my < h Then
-		c3d_my = 0
-		move_mouse = True
-	End If
-	
-	If move_mouse Then
-		WarpMouse(c3d_mx, c3d_my)
-		dx = 0
-		dy = 0
-	Else
-		dx = c3d_mx - c3d_prev_mx
-		dy = c3d_my - c3d_prev_my
-	End If
-
-End Sub
-
-c3d_mouse_fps_flag = True
-GrabInput(1)
-WarpMouse(C3D_SCREEN_WIDTH/2, C3D_SCREEN_HEIGHT/2)
-HideMouse()
 
 
 weapon_sprite = C3D_GetFreeImageSlot()
@@ -209,79 +122,20 @@ weapon_frame_count = 3
 
 jump_force = 0
 
-Function ActorOnFloor(actor)
-	If C3D_Actor_Stage_Collision_Count[actor] <= 0 Then
-		Return False
-	End If
-	
-	For i = 0 to C3D_Actor_Stage_Collision_Count[actor]-1
-		geo = C3D_Actor_Stage_Collision[actor, i]
-		type = C3D_Stage_Geometry[geo, 0]
-		If type = C3D_STAGE_GEOMETRY_TYPE_FLOOR Then
-			Return True
-		End IF
-	Next
-	Return False
-End Function
 
 Sub FPSControl()
 	'RSHIFT NEEDS TO BE ADDED
 	
 	If jump_force > 0 Then
-		MoveFPSCameraActor(cam_obj, 0, jump_speed, 0)
+		C3D_MoveFPSCamera(0, jump_speed, 0)
 		jump_force = jump_force - 1
 	Else
-		MoveFPSCameraActor(cam_obj, 0, -gravity, 0)
+		C3D_MoveFPSCamera(0, -gravity, 0)
 	End If
 	
-	
-	Dim dx, dy
-	MouseDelta_FPS(dx, dy)
-	
-	dx = dx * sensitivity
-	dy = dy * sensitivity
-	
-	C3D_RotateCamera(0, dx, 0)
-	
-	dim xr,yr,zr
-	C3D_GetCameraRotation(xr,yr,zr)
-	
-	new_y = xr + dy
-	If dy < 0 And (new_y < -25) Then
-		dy = 0
-	ElseIf dy > 0 And (new_y > 90) Then
-		dy = 0
-	End If
-	
-	C3D_RotateCamera(dy, 0, 0)
-	
-	if key(k_space) And ActorOnFloor(cam_obj) Then
+	if key(k_space) And C3D_CameraOnFloor() Then
 		jump_force = max_jump_force
 	end if
-	
-	If Key(K_A) Then
-		MoveFPSCameraActor(cam_obj, -cam_speed, 0, 0)
-		'C3D_MoveCameraRelative(-cam_speed, 0, 0)
-	ElseIf Key(K_D) Then
-		MoveFPSCameraActor(cam_obj, cam_speed, 0, 0)
-		'C3D_MoveCameraRelative(cam_speed, 0, 0)
-	End If
-	
-	If Key(K_W) Then
-		MoveFPSCameraActor(cam_obj, 0, 0, -cam_speed)
-		'C3D_MoveCameraRelative(0, 0, -cam_speed)
-	ElseIf Key(K_S) Then
-		MoveFPSCameraActor(cam_obj, 0, 0, cam_speed)
-		'C3D_MoveCameraRelative(0, 0, cam_speed)
-	End If
-	
-	If Key(K_R) Then
-		MoveFPSCameraActor(cam_obj, 0, cam_speed, 0)
-		'C3D_MoveCamera(0, cam_speed, 0)
-	ElseIf Key(K_F) Then
-		MoveFPSCameraActor(cam_obj, 0, -cam_speed, 0)
-		'C3D_MoveCamera(0, -cam_speed, 0)
-	End If
 	
 	If c3d_mb1 Then
 		If weapon_frame_current_time > weapon_frame_time_limit Then
@@ -294,15 +148,7 @@ Sub FPSControl()
 	Else
 		weapon_current_frame = 0
 	End If
-	
-'	If key(k_m) Then
-'		dim x, y, z, rx, ry, rz
-'		C3D_GetCameraRotation(rx, ry, rz)
-'		C3D_GetActorPosition(cam_obj, x, y, z)
-'		Print "cam = ";rx;", ";ry;", ";rz
-'		Print "obj = ";x;", ";y;", ";z
-'		print ""
-'	end if
+
 End Sub
 
 
@@ -402,14 +248,15 @@ End Sub
 
 m = false
 Update()
-MoveFPSCameraActor(cam_obj, -1, 0, 0)
+
+C3D_EnableFPSCamera()
+C3D_MoveFPSCamera(-1, 0, 0)
 C3D_SetCameraRotation(24, 170, 0)
 
 LoadFont(0, "FreeMono.ttf", 12)
 
 While Not Key(K_ESCAPE)
-	'Viewport_Control()
-	FPSControl()
+
 	DrawUI()
 	GetDemonFrame()
 	
@@ -425,6 +272,12 @@ While Not Key(K_ESCAPE)
 		dim cx, cy, cz
 		C3D_GetCameraPosition(cx, cy, cz)
 		Print "Cam Info: "; cx; ", "; cy;", "; cz
+		dim hx, hy, hz
+		C3D_GetActorPosition(house1, hx, hy, hz)
+		Print "House Info: "; hx; ", "; hy; ", "; hz
+		Print "Angle: "; C3D_Camera_Rotation[1];" -> ";C3D_LineAngle(cx, cz, hx, hz)
+		Print "View: "; C3D_ComputeActorInView(house1)
+		Print ""
 	End If
 	
 	If key(k_z) then
