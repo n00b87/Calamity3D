@@ -12,6 +12,9 @@ C3D_Background_Image = -1
 
 C3D_Background_Enabled = False
 
+
+
+
 Function C3D_GenerateBackground(lf, rt, bk, ft, up, dn)
 	C3D_Bkg_Left_Image = lf
 	C3D_Bkg_Right_Image = rt
@@ -138,11 +141,11 @@ Function C3D_GenerateBackground(lf, rt, bk, ft, up, dn)
 	DrawImage(C3D_Image[C3D_Background_Image], 512, 0)
 	
 	DeleteImage(C3D_Image[C3D_Background_Image])
-	CanvasClip(C3D_Image[C3D_Background_Image], 0, 0, 1024, 640, 1)
+	CanvasClip(C3D_Image[C3D_Background_Image], 0, 0, 1024, 1024, 1)
 	
-	ClearCanvas
+	'ClearCanvas
 	
-	DrawImage(C3D_Image[C3D_Background_Image], 0, 0)
+	'DrawImage(C3D_Image[C3D_Background_Image], 0, 0)
 	'Print "Drawn"
 	'Update
 	
@@ -152,6 +155,38 @@ Function C3D_GenerateBackground(lf, rt, bk, ft, up, dn)
 	SetCanvasVisible(C3D_CANVAS_RENDER, true)
 	
 	'CanvasClip(C3D_Image[C3D_Background_Image], 0, 0, 512, 512, 1)
+	
+	Return True
+	
+End Function
+
+
+Function C3D_SetBackground(c_img)
+	
+	If C3D_Background_Image >= 0 Then
+		If ImageExists(C3D_Image[C3D_Background_Image]) Then
+			DeleteImage(C3D_Image[C3D_Background_Image])
+		End If
+	Else
+		C3D_Background_Image = C3D_GetFreeImage(512, 512)
+		If C3D_Background_Image < 0 Then
+			Return False
+		End If
+	End If
+	
+	Canvas(C3D_CANVAS_BACKBUFFER)
+	ClearCanvas()
+	
+	Dim w, h
+	
+	GetImageSize(C3D_Image[c_img], w, h)
+	
+	ratio = 512/w
+	
+	DrawImage_Blit_Ex(C3D_Image[c_img], 0, 0, 512, 768, 0, 0, w, h)
+	DrawImage_Blit_Ex(C3D_Image[c_img], 512, 0, 512, 768, 0, 0, w, h)
+	
+	CanvasClip(C3D_Image[C3D_Background_Image], 0, 0, 1024, 1024, 1)
 	
 	Return True
 	
@@ -185,7 +220,10 @@ Sub C3D_RenderBackground()
 		C3D_Ternary( offset_y <= -255, offset_y, -255, offset_y)
 		
 		'If key(k_5) Then
-		'	print "bkg_y = ";bkg_y
+		'	print "bkg_x = ";bkg_x
+		'	Canvas(0)
+		'	DrawImage_Blit_Ex(C3D_Image[C3D_Background_Image], 0, 0, C3D_SCREEN_WIDTH, C3D_SCREEN_HEIGHT, bkg_x, bkg_y, 256, 256)
+		'	Canvas(C3D_CANVAS_RENDER)
 		'	print ""
 		'End If
 		dw = 0
@@ -193,8 +231,8 @@ Sub C3D_RenderBackground()
 		
 		sc_y_offset = (offset_y/512)*C3D_SCREEN_HEIGHT
 		
-		GetImageSize(C3D_Image[C3D_Bkg_Down_Image], dw, dh)
-		DrawImage_Blit_Ex(C3D_Image[C3D_Bkg_Down_Image], 0, 0, C3D_SCREEN_WIDTH, C3D_SCREEN_HEIGHT, 0, 0, dw, dh)
+		'GetImageSize(C3D_Image[C3D_Background_Image], dw, dh)
+		'DrawImage_Blit_Ex(C3D_Image[C3D_Background_Image], 0, 0, C3D_SCREEN_WIDTH, C3D_SCREEN_HEIGHT, bkg_x, 0, dw/8, dh)
 		DrawImage_Blit_Ex(C3D_Image[C3D_Background_Image], 0, 0, C3D_SCREEN_WIDTH, C3D_SCREEN_HEIGHT, bkg_x, bkg_y, 256, 256)
 		
 		'Print "BKG"

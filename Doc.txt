@@ -776,7 +776,7 @@ Sub C3D_LinkImage(c3d_img, img_slot)
 
 [BACKGROUND]
 
-Sub C3D_GenerateBackground(left, right, back, front, up, down)
+Function C3D_GenerateBackground(left, right, back, front, up, down)
 '
 '	Generates a Fake Skybox from the images given
 '
@@ -788,6 +788,10 @@ Sub C3D_GenerateBackground(left, right, back, front, up, down)
 '	up - Image ID returned by C3D_LoadImage() or C3D_GetFreeImage()
 '	down - Image ID returned by C3D_LoadImage() or C3D_GetFreeImage()
 '
+'	Returns: TRUE if a background image could be allocated and FALSE if it couldn't
+'
+'	Note: If it returns false it means all the available image slots are already used up and you need to free one up with C3D_DeleteImage()
+'	
 '	Note: Images should be generated using C3D_LoadImage() or using C3D_FreeImage() if you want to generate the image in code
 '
 
@@ -800,6 +804,14 @@ Sub C3D_ShowBackground(flag)
 '
 
 
+Function C3D_SetBackground(c_img)
+'
+'	Sets a background from a C3D image id
+'
+'	Returns TRUE if a background could be allocated and FALSE if it couldn't
+'
+'	Note: You might need to free up an image with C3D_DeleteImage() if it returns false
+'
 
 
 ----------------------------------------------------------------------------------------

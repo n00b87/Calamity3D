@@ -633,7 +633,7 @@ Sub C3D_RenderSceneGeometry()
 	c3d_index_count = 0
 	c3d_vertex_count = 0
 	
-	t = timer()
+	't = timer()
 	
 	For z = (C3D_MAX_ZSORT_DEPTH-1) to 1 step -1
 		If C3D_ZSort_Faces_Count[z] > 0 Then

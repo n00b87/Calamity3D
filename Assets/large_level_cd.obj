@@ -1,0 +1,33 @@
+# Created with Anim8or 1.00
+# Object "large_level":
+
+mtllib large_level_cd.mtl
+
+# Shape "mesh02":
+g mesh02
+# No. points 4:
+v -15844 35.0179 -15841.5
+v -15844 35.0175 16536.1
+v 16533.5 35.0176 -15841.5
+v 16533.5 35.0171 16536.1
+
+# No. normals 5:
+vn 0 -1 0
+vn 0 -1 0
+vn 0 -1 0
+vn 0 -1 0
+vn 0 -1 0
+
+# No. texture coordinates 4:
+vt 0 0
+vt 0 0
+vt 1 0
+vt 1 0
+
+# No. faces 1:
+
+usemtl ___default___
+
+f 3/3/4 4/4/5 2/2/3 1/1/2
+
+# End of Object "large_level"

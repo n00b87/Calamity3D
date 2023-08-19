@@ -26,7 +26,9 @@ ft = C3D_LoadImage("Assets/bkg_ft.jpg")
 up = C3D_LoadImage("Assets/bkg_up.jpg")
 dn = C3D_LoadImage("Assets/bkg_dn.jpg")
 
-C3D_GenerateBackground(lf, rt, bk, ft, up, dn)
+'C3D_GenerateBackground(lf, rt, bk, ft, up, dn)
+bkg = C3D_LoadImage("Assets/skybox-assembled.jpg")
+C3D_SetBackground(bkg)
 C3D_ShowBackground(true)
 
 
@@ -43,7 +45,8 @@ C3D_DeleteImage(dn)
 
 'terrain_mesh = C3D_LoadMesh("Assets/terrain2.obj")
 terrain_mesh = C3D_LoadMesh("Assets/large_level.obj")
-terrain_cd = C3D_LoadMesh("Assets/terrain_cd.obj")
+'terrain_cd = C3D_LoadMesh("Assets/terrain_cd.obj")
+terrain_cd = C3D_LoadMesh("Assets/large_level_cd.obj")
 C3D_AddStageGeometryFromMesh(terrain_cd)
 
 'terrain_texture = C3D_LoadImage("Assets/terrain1.png")
@@ -61,7 +64,7 @@ C3D_AddStageGeometry(C3D_STAGE_GEOMETRY_TYPE_FLOOR, x1, y1, z1, x2, y2, z2, x3, 
 
 
 c = C3D_CutMesh(terrain_mesh, 4000)
-'Print "Cuts = "; c
+Print "Cuts = "; c
 '
 For i = 0 to C3D_Mesh_Cut_Count-1
 	C3D_SetMeshTexture(C3D_Mesh_Cuts[i], terrain_texture)
