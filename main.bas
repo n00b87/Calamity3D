@@ -258,6 +258,8 @@ C3D_SetCameraRotation(24, 170, 0)
 
 LoadFont(0, "FreeMono.ttf", 12)
 
+C3D_SetFrameLimit(120)
+
 While Not Key(K_ESCAPE)
 
 	DrawUI()
@@ -295,3 +297,5 @@ While Not Key(K_ESCAPE)
 	C3D_Update()
 	'waitkey
 Wend
+
+
