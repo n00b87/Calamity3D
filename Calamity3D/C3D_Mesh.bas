@@ -1706,6 +1706,12 @@ Function SetFaceZ(actor, face_num, ByRef z_avg)
 		distance = -1*vz[i]
 		
 		If distance >= 0 And distance < C3D_MAX_Z_DEPTH Then
+			if key(k_2) and actor = 64 then
+			print "distance = "; distance
+			print "V[";i;"] = ";vx;", ";vy;", ";vz[i]
+			print "i1: zx = "; C3D_ZX_Range[distance, 0];", "; C3D_ZX_Range[distance, 1]
+			print "i1: zy = "; C3D_ZY_Range[distance, 0];", "; C3D_ZY_Range[distance, 1]
+			end if
 			in_zx_range = in_zx_range Or (vx >= C3D_ZX_Range[distance, 0] And vx < C3D_ZX_Range[distance, 1])
 			in_zy_range = in_zy_range Or (vy >= C3D_ZY_Range[distance, 0] And vy < C3D_ZY_Range[distance, 1])			
 			
@@ -1715,6 +1721,12 @@ Function SetFaceZ(actor, face_num, ByRef z_avg)
 			zy_min_bound = zy_min_bound Or (vy < C3D_ZY_Range[distance, 0])
 			zy_max_bound = zy_max_bound Or (vy >= C3D_ZY_Range[distance, 1])
 		ElseIf vz[i] >= 0 And vz[i] < C3D_MAX_Z_DEPTH Then
+			if key(k_2) and actor = 64 then
+			print "V[";i;"] = ";vx;", ";vy;", ";vz[i]
+			print "i2: zx = "; C3D_ZX_Range[distance, 0];", "; C3D_ZX_Range[distance, 1]
+			print "i2: zy = "; C3D_ZY_Range[distance, 0];", "; C3D_ZY_Range[distance, 1]
+			end if
+			
 			in_zx_range = in_zx_range Or (vx >= C3D_ZX_Range[vz[i], 0] And vx < C3D_ZX_Range[vz[i], 1])
 			in_zy_range = in_zy_range Or (vy >= C3D_ZY_Range[vz[i], 0] And vy < C3D_ZY_Range[vz[i], 1])
 			
@@ -1791,11 +1803,45 @@ Sub C3D_ComputeVisibleFaces()
 			C3D_Visible_Faces[C3D_Visible_Faces_Count, 0] = actor
 			C3D_Visible_Faces[C3D_Visible_Faces_Count, 1] = face
 			C3D_Visible_Faces_Type[C3D_Visible_Faces_Count] = C3D_Actor_Type[actor]
+			
+			print "face = "; face
 			face_min_z = SetFaceZ(actor, face, z_avg)
 			
 			'If C3D_Actor_Type[actor] = C3D_ACTOR_TYPE_SPRITE Then
 			'	print "face_min_z["; face;"] = ";face_min_z
 			'End If
+			
+			If actor = 64 and key(k_2) and face = 185 Then
+				vz1 = MatrixValue(C3D_Actor_Matrix[actor, 0], 2, C3D_Mesh_Face_Vertex[mesh, face, 0])
+				vx1 = MatrixValue(C3D_Actor_Matrix[actor, 0], 0, C3D_Mesh_Face_Vertex[mesh, face, 0])
+				vy1 = MatrixValue(C3D_Actor_Matrix[actor, 0], 1, C3D_Mesh_Face_Vertex[mesh, face, 0])
+				
+				vz2 = MatrixValue(C3D_Actor_Matrix[actor, 0], 2, C3D_Mesh_Face_Vertex[mesh, face, 1])
+				vx2 = MatrixValue(C3D_Actor_Matrix[actor, 0], 0, C3D_Mesh_Face_Vertex[mesh, face, 1])
+				vy2 = MatrixValue(C3D_Actor_Matrix[actor, 0], 1, C3D_Mesh_Face_Vertex[mesh, face, 1])
+				
+				vz3 = MatrixValue(C3D_Actor_Matrix[actor, 0], 2, C3D_Mesh_Face_Vertex[mesh, face, 2])
+				vx3 = MatrixValue(C3D_Actor_Matrix[actor, 0], 0, C3D_Mesh_Face_Vertex[mesh, face, 2])
+				vy3 = MatrixValue(C3D_Actor_Matrix[actor, 0], 1, C3D_Mesh_Face_Vertex[mesh, face, 2])
+				
+				vz4 = MatrixValue(C3D_Actor_Matrix[actor, 0], 2, C3D_Mesh_Face_Vertex[mesh, face, 3])
+				vx4 = MatrixValue(C3D_Actor_Matrix[actor, 0], 0, C3D_Mesh_Face_Vertex[mesh, face, 3])
+				vy4 = MatrixValue(C3D_Actor_Matrix[actor, 0], 1, C3D_Mesh_Face_Vertex[mesh, face, 3])
+				
+				print "face_min_z["; face;"] = ";face_min_z; " -> ";z_avg; "  --- ";C3D_Actor_Matrix[actor, 0]
+				print "col = "; C3D_Mesh_Face_Vertex[mesh, face, 0]; ", "; C3D_Mesh_Face_Vertex[mesh, face, 1];
+				print ", "; C3D_Mesh_Face_Vertex[mesh, face, 2]; ", "; C3D_Mesh_Face_Vertex[mesh, face, 3]
+				print "( "; vx1; ", "; vy1; ", "; vz1; ") "
+				print "( "; vx2; ", "; vy2; ", "; vz2; ") "
+				print "( "; vx3; ", "; vy3; ", "; vz3; ") "
+				print "( "; vx4; ", "; vy4; ", "; vz4; ") "
+				print ""
+				
+				wait(200)
+				waitkey()
+			End If
+			print ""
+			
 			
 			If face_min_z >= 0 And face_min_z < C3D_MAX_Z_DEPTH Then
 				dbg_face_count = dbg_face_count + 1
