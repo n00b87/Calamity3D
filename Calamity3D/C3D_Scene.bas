@@ -230,6 +230,9 @@ Function C3D_ClipTriangle(ByRef tri, ByRef uv, ByRef clipped_tri, ByRef clipped_
 
 End Function
 
+d_time = 0
+
+dm_matrix = C3D_CreateMatrix(3,1)
 
 Sub C3D_DrawMeshFace(actor, face)
 	If Not C3D_Actor_Visible[actor] then
@@ -262,264 +265,49 @@ Sub C3D_DrawMeshFace(actor, face)
 	
 	vi_zero = c3d_vi
 	
+	actor_matrix = C3D_Actor_Matrix[actor, 0]
 	'vert_added = 0
 	'Convert 3D coordinates into 2D screen location
+	tt = timer
 	For i = 0 to f_vertex_count-1
-		vert_num = C3D_Mesh_Face_Vertex[mesh, face, i] 'vertex number will be the same between Mesh and Actor Arrays
+		'vert_num = C3D_Mesh_Face_Vertex[mesh, face, i] 'vertex number will be the same between Mesh and Actor Arrays
 		
-		vec3(tri[tri_index], MatrixValue(C3D_Actor_Matrix[actor, 0], 0, vert_num), MatrixValue(C3D_Actor_Matrix[actor, 0], 1, vert_num), MatrixValue(C3D_Actor_Matrix[actor, 0], 2, vert_num))
-		vec2(uv[uv_index], uv_x + (uv_w * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 0]), uv_y + (uv_h * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 1]))
-		tri_index = tri_index + 3
+		'tri[tri_index] = MatrixValue(C3D_Actor_Matrix[actor, 0], 0, vert_num)
+		'tri[tri_index+1] = MatrixValue(C3D_Actor_Matrix[actor, 0], 1, vert_num)
+		'tri[tri_index+2] = MatrixValue(C3D_Actor_Matrix[actor, 0], 2, vert_num)
+		
+		'CopyMatrixColumns(actor_matrix, dm_matrix, vert_num, 1)
+		'GetMatrix(tri[tri_index], dm_matrix)
+		
+		uv[uv_index] = uv_x + (uv_w * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 0])
+		uv[uv_index+1] = uv_y + (uv_h * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 1])
+		'tri_index = tri_index + 3
 		uv_index = uv_index + 2
 	Next
+	d_time = d_time+(timer-tt)
 	
-	Select Case f_vertex_count
-	Case 3
-		clip = C3D_ClipTriangle(tri, uv, clipped_tri, clipped_uv)
-		If clip Then
-			tri_index = 0
-			uv_index = 0
-			For i = 0 to clip-1
-				distance = C3D_CAMERA_LENS - clipped_tri[tri_index+2]
-				C3D_Ternary(distance<=0, distance, 1, distance)
-				cld = (C3D_CAMERA_LENS / distance)
-				c3d_vertex[ c3d_vi, 0 ] = (cld * clipped_tri[tri_index]) + C3D_SCREEN_GRAPH_OFFSET_X
-				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (cld * clipped_tri[tri_index+1])
-				c3d_vertex[ c3d_vi, 2 ] = 255
-				c3d_vertex[ c3d_vi, 3 ] = 255
-				c3d_vertex[ c3d_vi, 4 ] = 255
-				c3d_vertex[ c3d_vi, 5 ] = 255
-				c3d_vertex[ c3d_vi, 6 ] = clipped_uv[uv_index] ' uv_x + (uv_w * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 0]) 'u
-				c3d_vertex[ c3d_vi, 7 ] = clipped_uv[uv_index+1] 'uv_y + (uv_h * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 1]) 'v
-				
-				actor_distance[ actor ] = min(distance, actor_distance[ actor ])
-				actor_min_screen_x[ actor ] = min(c3d_vertex[ c3d_vi, 0], actor_min_screen_x[ actor ])
-				actor_min_screen_y[ actor ] = min(c3d_vertex[ c3d_vi, 1], actor_min_screen_y[ actor ])
-				actor_max_screen_x[ actor ] = max(c3d_vertex[ c3d_vi, 0], actor_max_screen_x[ actor ])
-				actor_max_screen_y[ actor ] = max(c3d_vertex[ c3d_vi, 1], actor_max_screen_y[ actor ])
-				
-				c3d_index[c3d_index_count] = c3d_vi
-				c3d_index_count = c3d_index_count + 1
-				c3d_vi = c3d_vi + 1
-				tri_index = tri_index + 3
-				uv_index = uv_index + 2
-			Next
-		Else
-			tri_index = 0
-			uv_index = 0
-			For i = 0 to 2
-				distance = C3D_CAMERA_LENS - tri[tri_index+2]
-				C3D_Ternary(distance<=0, distance, 1, distance)
-				cld = (C3D_CAMERA_LENS / distance)
-				c3d_vertex[ c3d_vi, 0 ] = (cld * tri[tri_index]) + C3D_SCREEN_GRAPH_OFFSET_X
-				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (cld * tri[tri_index+1])
-				c3d_vertex[ c3d_vi, 2 ] = 255
-				c3d_vertex[ c3d_vi, 3 ] = 255
-				c3d_vertex[ c3d_vi, 4 ] = 255
-				c3d_vertex[ c3d_vi, 5 ] = 255
-				c3d_vertex[ c3d_vi, 6 ] = uv[uv_index] ' uv_x + (uv_w * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 0]) 'u
-				c3d_vertex[ c3d_vi, 7 ] = uv[uv_index+1] 'uv_y + (uv_h * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 1]) 'v
-				
-				actor_distance[ actor ] = min(distance, actor_distance[ actor ])
-				actor_min_screen_x[ actor ] = min(c3d_vertex[ c3d_vi, 0], actor_min_screen_x[ actor ])
-				actor_min_screen_y[ actor ] = min(c3d_vertex[ c3d_vi, 1], actor_min_screen_y[ actor ])
-				actor_max_screen_x[ actor ] = max(c3d_vertex[ c3d_vi, 0], actor_max_screen_x[ actor ])
-				actor_max_screen_y[ actor ] = max(c3d_vertex[ c3d_vi, 1], actor_max_screen_y[ actor ])
-				
-				c3d_vi = c3d_vi + 1
-				tri_index = tri_index + 3
-				uv_index = uv_index + 2
-			Next
-			
-			A = vi_zero
-			B = vi_zero+1
-			C = vi_zero+2
-			
-			c3d_index[c3d_index_count] = A
-			c3d_index[c3d_index_count+1] = B
-			c3d_index[c3d_index_count+2] = C
-			c3d_index_count = c3d_index_count + 3
-		End If
-		
-	Case 4
-		clip = C3D_ClipTriangle(tri, uv, clipped_tri, clipped_uv)
-		If clip Then
-			tri_index = 0
-			uv_index = 0
-			For i = 0 to clip-1
-				distance = C3D_CAMERA_LENS - clipped_tri[tri_index+2]
-				C3D_Ternary(distance<=0, distance, 1, distance)
-				cld = (C3D_CAMERA_LENS / distance)
-				c3d_vertex[ c3d_vi, 0 ] = (cld * clipped_tri[tri_index]) + C3D_SCREEN_GRAPH_OFFSET_X
-				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (cld * clipped_tri[tri_index+1])
-				c3d_vertex[ c3d_vi, 2 ] = 255
-				c3d_vertex[ c3d_vi, 3 ] = 255
-				c3d_vertex[ c3d_vi, 4 ] = 255
-				c3d_vertex[ c3d_vi, 5 ] = 255
-				c3d_vertex[ c3d_vi, 6 ] = clipped_uv[uv_index] ' uv_x + (uv_w * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 0]) 'u
-				c3d_vertex[ c3d_vi, 7 ] = clipped_uv[uv_index+1] 'uv_y + (uv_h * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 1]) 'v
-				
-				actor_distance[ actor ] = min(distance, actor_distance[ actor ])
-				actor_min_screen_x[ actor ] = min(c3d_vertex[ c3d_vi, 0], actor_min_screen_x[ actor ])
-				actor_min_screen_y[ actor ] = min(c3d_vertex[ c3d_vi, 1], actor_min_screen_y[ actor ])
-				actor_max_screen_x[ actor ] = max(c3d_vertex[ c3d_vi, 0], actor_max_screen_x[ actor ])
-				actor_max_screen_y[ actor ] = max(c3d_vertex[ c3d_vi, 1], actor_max_screen_y[ actor ])
-				
-				c3d_index[c3d_index_count] = c3d_vi
-				c3d_index_count = c3d_index_count + 1
-				c3d_vi = c3d_vi + 1
-				tri_index = tri_index + 3
-				uv_index = uv_index + 2
-			Next
-		Else
-			tri_index = 0
-			uv_index = 0
-			For i = 0 to 2
-				distance = C3D_CAMERA_LENS - tri[tri_index+2]
-				C3D_Ternary(distance<=0, distance, 1, distance)
-				cld = (C3D_CAMERA_LENS / distance)
-				c3d_vertex[ c3d_vi, 0 ] = (cld * tri[tri_index]) + C3D_SCREEN_GRAPH_OFFSET_X
-				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (cld * tri[tri_index+1])
-				c3d_vertex[ c3d_vi, 2 ] = 255
-				c3d_vertex[ c3d_vi, 3 ] = 255
-				c3d_vertex[ c3d_vi, 4 ] = 255
-				c3d_vertex[ c3d_vi, 5 ] = 255
-				c3d_vertex[ c3d_vi, 6 ] = uv[uv_index] ' uv_x + (uv_w * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 0]) 'u
-				c3d_vertex[ c3d_vi, 7 ] = uv[uv_index+1] 'uv_y + (uv_h * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 1]) 'v
-				
-				actor_distance[ actor ] = min(distance, actor_distance[ actor ])
-				actor_min_screen_x[ actor ] = min(c3d_vertex[ c3d_vi, 0], actor_min_screen_x[ actor ])
-				actor_min_screen_y[ actor ] = min(c3d_vertex[ c3d_vi, 1], actor_min_screen_y[ actor ])
-				actor_max_screen_x[ actor ] = max(c3d_vertex[ c3d_vi, 0], actor_max_screen_x[ actor ])
-				actor_max_screen_y[ actor ] = max(c3d_vertex[ c3d_vi, 1], actor_max_screen_y[ actor ])
-				
-				c3d_vi = c3d_vi + 1
-				tri_index = tri_index + 3
-				uv_index = uv_index + 2
-			Next
-			
-			A = vi_zero
-			B = vi_zero+1
-			C = vi_zero+2
-			
-			c3d_index[c3d_index_count] = A
-			c3d_index[c3d_index_count+1] = B
-			c3d_index[c3d_index_count+2] = C
-			c3d_index_count = c3d_index_count + 3
-		End If
-		
-		vec3(tri[3], tri[0], tri[1], tri[2])
-		vec2(uv[2], uv[0], uv[1])
-		clip = C3D_ClipTriangle(tri[3], uv[2], clipped_tri, clipped_uv)
-		
-		If clip Then
-			tri_index = 0
-			uv_index = 0
-			For i = 0 to clip-1
-				distance = C3D_CAMERA_LENS - clipped_tri[tri_index+2]
-				C3D_Ternary(distance<=0, distance, 1, distance)
-				cld = (C3D_CAMERA_LENS / distance)
-				c3d_vertex[ c3d_vi, 0 ] = (cld * clipped_tri[tri_index]) + C3D_SCREEN_GRAPH_OFFSET_X
-				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (cld * clipped_tri[tri_index+1])
-				c3d_vertex[ c3d_vi, 2 ] = 255
-				c3d_vertex[ c3d_vi, 3 ] = 255
-				c3d_vertex[ c3d_vi, 4 ] = 255
-				c3d_vertex[ c3d_vi, 5 ] = 255
-				c3d_vertex[ c3d_vi, 6 ] = clipped_uv[uv_index] ' uv_x + (uv_w * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 0]) 'u
-				c3d_vertex[ c3d_vi, 7 ] = clipped_uv[uv_index+1] 'uv_y + (uv_h * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 1]) 'v
-				
-				actor_distance[ actor ] = min(distance, actor_distance[ actor ])
-				actor_min_screen_x[ actor ] = min(c3d_vertex[ c3d_vi, 0], actor_min_screen_x[ actor ])
-				actor_min_screen_y[ actor ] = min(c3d_vertex[ c3d_vi, 1], actor_min_screen_y[ actor ])
-				actor_max_screen_x[ actor ] = max(c3d_vertex[ c3d_vi, 0], actor_max_screen_x[ actor ])
-				actor_max_screen_y[ actor ] = max(c3d_vertex[ c3d_vi, 1], actor_max_screen_y[ actor ])
-				
-				c3d_index[c3d_index_count] = c3d_vi
-				c3d_index_count = c3d_index_count + 1
-				
-				c3d_vi = c3d_vi + 1
-				
-				tri_index = tri_index + 3
-				uv_index = uv_index + 2
-			Next
-		Else
-			tri_index = 3
-			uv_index = 2
-			For i = 0 to 2
-				distance = C3D_CAMERA_LENS - tri[tri_index+2]
-				C3D_Ternary(distance<=0, distance, 1, distance)
-				cld = (C3D_CAMERA_LENS / distance)
-				c3d_vertex[ c3d_vi, 0 ] = (cld * tri[tri_index]) + C3D_SCREEN_GRAPH_OFFSET_X
-				c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (cld * tri[tri_index+1])
-				c3d_vertex[ c3d_vi, 2 ] = 255
-				c3d_vertex[ c3d_vi, 3 ] = 255
-				c3d_vertex[ c3d_vi, 4 ] = 255
-				c3d_vertex[ c3d_vi, 5 ] = 255
-				c3d_vertex[ c3d_vi, 6 ] = uv[uv_index] ' uv_x + (uv_w * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 0]) 'u
-				c3d_vertex[ c3d_vi, 7 ] = uv[uv_index+1] 'uv_y + (uv_h * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 1]) 'v
-				
-				actor_distance[ actor ] = min(distance, actor_distance[ actor ])
-				actor_min_screen_x[ actor ] = min(c3d_vertex[ c3d_vi, 0], actor_min_screen_x[ actor ])
-				actor_min_screen_y[ actor ] = min(c3d_vertex[ c3d_vi, 1], actor_min_screen_y[ actor ])
-				actor_max_screen_x[ actor ] = max(c3d_vertex[ c3d_vi, 0], actor_max_screen_x[ actor ])
-				actor_max_screen_y[ actor ] = max(c3d_vertex[ c3d_vi, 1], actor_max_screen_y[ actor ])
-				
-				c3d_index[c3d_index_count] = c3d_vi 'They will already be in the right order here
-				c3d_index_count = c3d_index_count + 1
-				c3d_vi = c3d_vi + 1
-				tri_index = tri_index + 3
-				uv_index = uv_index + 2
-			Next
-			
-		End If
-		
-	End Select
-		
-'		z = MatrixValue(C3D_Actor_Matrix[actor, 0], 2, vert_num)
-'		distance = C3D_CAMERA_LENS - z
-'		
-'			
-'		if distance < 0 Then
-'			cd = 2
-'			cx = (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 0, vert_num) / cd) + C3D_SCREEN_GRAPH_OFFSET_X
-'			cy = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 1, vert_num) / cd)
-'			dd = 1
-'			dx = (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 0, vert_num) / dd) + C3D_SCREEN_GRAPH_OFFSET_X
-'			dy = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 1, vert_num) / dd)
-'			point_on_line(cx, cy, dx, dy, 2 - distance, c3d_vertex[ c3d_vi, 0 ], c3d_vertex[ c3d_vi, 1 ])
-'		
-'		else
-'			C3D_Ternary(distance=0, distance, 1, distance)
-'			c3d_vertex[ c3d_vi, 0 ] = (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 0, vert_num) / distance) + C3D_SCREEN_GRAPH_OFFSET_X
-'			c3d_vertex[ c3d_vi, 1 ] = C3D_SCREEN_GRAPH_OFFSET_Y - (C3D_CAMERA_LENS * MatrixValue(C3D_Actor_Matrix[actor, 0], 1, vert_num) / distance)
-'			
-'			actor_distance[ actor ] = min(distance, actor_distance[ actor ])
-'			actor_min_screen_x[ actor ] = min(c3d_vertex[ c3d_vi, 0], actor_min_screen_x[ actor ])
-'			actor_min_screen_y[ actor ] = min(c3d_vertex[ c3d_vi, 1], actor_min_screen_y[ actor ])
-'			actor_max_screen_x[ actor ] = max(c3d_vertex[ c3d_vi, 0], actor_max_screen_x[ actor ])
-'			actor_max_screen_y[ actor ] = max(c3d_vertex[ c3d_vi, 1], actor_max_screen_y[ actor ])
-'		end if
-'		c3d_vertex[ c3d_vi, 2 ] = 255
-'		c3d_vertex[ c3d_vi, 3 ] = 255
-'		c3d_vertex[ c3d_vi, 4 ] = 255
-'		c3d_vertex[ c3d_vi, 5 ] = 255
-'		c3d_vertex[ c3d_vi, 6 ] = uv_x + (uv_w * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 0]) 'u
-'		c3d_vertex[ c3d_vi, 7 ] = uv_y + (uv_h * C3D_Mesh_TCoord[mesh, C3D_Mesh_Face_TCoord[mesh, face, i], 1]) 'v
-'		
-'		
-'		If f_vertex_count > 3 Then
-'			If i >= 2 Then
-'				c3d_index[c3d_index_count] = vi_zero
-'				c3d_index[c3d_index_count+1] = c3d_vi-1
-'				c3d_index[c3d_index_count+2] = c3d_vi
-'				c3d_index_count = c3d_index_count + 3
-'			End If
-'		Else
-'			c3d_index[c3d_index_count] = c3d_vi
-'			c3d_index_count = c3d_index_count + 1
-'		End If
-'		c3d_vi = c3d_vi + 1
-'	Next
+	'actor_distance[ actor ], actor_min_screen_x[ actor ], actor_min_screen_y[ actor ], actor_max_screen_x[ actor ], actor_max_screen_y[ actor ]
+	v_count = 0
+	i_count = 0
+	
+	dim clip_dist, min_x, min_y, max_x, max_y
+	
+	GetProjectionGeometry(C3D_CAMERA_LENS, actor_matrix, f_vertex_count, C3D_Mesh_Face_Vertex[mesh, face, 0], uv, C3D_SCREEN_GRAPH_OFFSET_X, C3D_SCREEN_GRAPH_OFFSET_Y, RGBA(255,255,255,255), v_count, c3d_vertex[ c3d_vi, 0 ], i_count, c3d_index[c3d_index_count], clip_dist, min_x, min_y, max_x, max_y)
+	
+	for i = c3d_index_count to (c3d_index_count + i_count)-1
+		'print "v[";i;"] = "; c3d_vertex[ i, 0 ]; ", "; c3d_vertex[ i, 1 ]; ", "; c3d_vertex[ i, 2 ]; ", "; c3d_vertex[ i, 3 ]; ", "; c3d_vertex[ i, 4 ]; ", "; c3d_vertex[ i, 5 ]; ", "; c3d_vertex[ i, 6 ]; ", "; c3d_vertex[ i, 7 ]
+		'print "index[";i ;"] = "; c3d_index[i]
+		c3d_index[i] = c3d_index[i] + c3d_index_count
+	next
+	
+	c3d_vi = c3d_vi + v_count
+	c3d_index_count = c3d_index_count + i_count
+	actor_distance[ actor ] = min(clip_dist, actor_distance[ actor ])
+	actor_min_screen_x[ actor ] = min(min_x, actor_min_screen_x[ actor ])
+	actor_min_screen_y[ actor ] = min(min_y, actor_min_screen_y[ actor ])
+	actor_max_screen_x[ actor ] = max(max_x, actor_max_screen_x[ actor ])
+	actor_max_screen_y[ actor ] = max(max_y, actor_max_screen_y[ actor ])
+	
 End Sub
 
 
@@ -633,7 +421,10 @@ Sub C3D_RenderSceneGeometry()
 	c3d_index_count = 0
 	c3d_vertex_count = 0
 	
-	't = timer()
+	t = timer()
+	
+	tot_time = 0
+	d_time = 0
 	
 	For z = (C3D_MAX_ZSORT_DEPTH-1) to 1 step -1
 		If C3D_ZSort_Faces_Count[z] > 0 Then
@@ -647,23 +438,18 @@ Sub C3D_RenderSceneGeometry()
 				End If
 				
 				face = C3D_Visible_Faces[visible_face_index, 1]
-				face_type = C3D_Visible_Faces_Type[visible_face_index]
+				'face_type = C3D_Visible_Faces_Type[visible_face_index]
 				
-				Select Case face_type
-				Case C3D_ACTOR_TYPE_MESH
-					'Draw Face
-					C3D_DrawMeshFace(actor, face)
-					C3D_Rendered_Faces_Count = C3D_Rendered_Faces_Count + 1
-				Case C3D_ACTOR_TYPE_SPRITE
-					'Do nothing for now
-					C3D_DrawMeshFace(actor, face)
-					C3D_Rendered_Faces_Count = C3D_Rendered_Faces_Count + 1
-				End Select
+				tt = timer()
+				C3D_DrawMeshFace(actor, face)
+				tot_time = tot_time + (timer() - tt)
+				C3D_Rendered_Faces_Count = C3D_Rendered_Faces_Count + 1
+					
 			Next
 		End If
 	Next
 	
-	'if key(k_t) then : print (timer()-t) : end if
+	if key(k_t) then : print "total_loop_time = "; (timer()-t);"    time_on_draw_mesh = ";tot_time; "  d_time = "; d_time : end if
 	
 	if C3D_Render_Type = C3D_RENDER_TYPE_WIREFRAME then
 		if c3d_index_count > 0 then

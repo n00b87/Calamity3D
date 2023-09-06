@@ -7,7 +7,7 @@ C3D_CLEAR_COLOR = RGB(153,217,234)
 'Initialize Engine and open a window
 C3D_Init("test", 640, 480, 0, 1)
 
-'C3D_SetFrameLimit(60)
+C3D_SetFrameLimit(30)
 
 'Opening Canvas 0 and setting it on top of the rendered display
 'NOTE: Canvas 0 is where the weapon sprite will be drawn
@@ -258,6 +258,8 @@ C3D_SetCameraRotation(24, 170, 0)
 
 LoadFont(0, "FreeMono.ttf", 12)
 
+'C3D_SetFrameLimit(120)
+
 While Not Key(K_ESCAPE)
 
 	DrawUI()
@@ -295,3 +297,5 @@ While Not Key(K_ESCAPE)
 	C3D_Update()
 	'waitkey
 Wend
+
+
