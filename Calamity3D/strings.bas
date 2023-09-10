@@ -65,3 +65,12 @@ Function Split(list_string$, delimeter$, ByRef list_out$)
 	
 	Return arg_num
 End Function
+
+Function InList(ByRef list$, list_count, item$)
+	For i = 0 to list_count-1
+		If item$ = list$[i] Then
+			Return True
+		End If
+	Next
+	Return False
+End Function

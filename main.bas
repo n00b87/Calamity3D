@@ -7,7 +7,7 @@ C3D_CLEAR_COLOR = RGB(153,217,234)
 'Initialize Engine and open a window
 C3D_Init("test", 640, 480, 0, 1)
 
-C3D_SetFrameLimit(30)
+C3D_SetFrameLimit(120)
 
 'Opening Canvas 0 and setting it on top of the rendered display
 'NOTE: Canvas 0 is where the weapon sprite will be drawn
